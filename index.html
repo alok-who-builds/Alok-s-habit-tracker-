@@ -376,7 +376,7 @@ body.compact-mode .checklist-grid{gap:5px}
   .sidebar.sb-open{transform:translateX(0)}
   .main-content{margin-left:0;padding:16px;padding-top:60px}
   .settings-drawer{width:240px}
-  .hamburger{display:flex}
+  .hamburger{display:flex;left:12px}
   .sb-overlay{display:block}
   .sb-overlay.active{opacity:1;pointer-events:all}
   .check-card{padding:13px 15px;min-height:48px}
@@ -385,6 +385,7 @@ body.compact-mode .checklist-grid{gap:5px}
   .mood-day-card{width:68px}
   .mood-emoji-sel{font-size:24px}
   .energy-pip{width:9px;height:9px}
+  .sb-logo{padding-top:58px}
 }
 
 /* ── MOBILE ── */
@@ -416,9 +417,11 @@ body.compact-mode .checklist-grid{gap:5px}
 }
 
 /* Hamburger button — always visible */
-.hamburger{display:flex;position:fixed;top:12px;left:12px;z-index:400;background:var(--bg2);border:1px solid var(--border);border-radius:7px;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3);transition:background .2s;flex-direction:column;gap:4px;padding:8px}
+.hamburger{display:flex;position:fixed;top:12px;left:228px;z-index:400;background:var(--bg2);border:1px solid var(--border);border-radius:7px;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3);transition:background .2s,left .3s cubic-bezier(.4,0,.2,1);flex-direction:column;gap:4px;padding:8px}
 .hamburger:hover{background:var(--bg3)}
 .hamburger span{display:block;width:18px;height:2px;background:currentColor;border-radius:1px;transition:all .2s}
+/* When sidebar is hidden, move hamburger back to left edge */
+body.sidebar-hidden .hamburger{left:12px}
 /* When sidebar is hidden, offset main content */
 body.sidebar-hidden .sidebar{transform:translateX(-100%)}
 body.sidebar-hidden .main-content{margin-left:0}
@@ -559,16 +562,12 @@ function toggleSidebar(){
     const open=sb.classList.toggle('sb-open');
     ov.classList.toggle('active',open);
   } else {
-    // Desktop: toggle hidden state
+    // Desktop: toggle hidden state — CSS handles sidebar transform + hamburger position
     document.body.classList.toggle('sidebar-hidden');
     const isHidden=document.body.classList.contains('sidebar-hidden');
-    if(isHidden){
-      sb.style.transform='translateX(-220px)';
-      mc.style.marginLeft='0';
-    } else {
-      sb.style.transform='';
-      mc.style.marginLeft='220px';
-    }
+    // Clear any inline styles so CSS classes take full control
+    sb.style.transform='';
+    mc.style.marginLeft=isHidden?'0':'220px';
   }
 }
 function closeSidebar(){
@@ -1804,19 +1803,30 @@ document.addEventListener('click',e=>{
 });
 
 function positionPopup(popup,triggerEl){
+  // Force display so we can measure real dimensions (display:none = 0x0)
+  popup.style.display='flex';
+  popup.style.visibility='hidden';
+  popup.style.position='fixed';
+  popup.style.left='-9999px';
+  popup.style.top='0';
   document.body.appendChild(popup);
+  // Now offsetWidth/offsetHeight are real
+  const pw=popup.offsetWidth;
+  const ph=popup.offsetHeight;
   const tr=triggerEl.getBoundingClientRect();
-  const pw=popup.offsetWidth||220;
-  const ph=popup.offsetHeight||80;
   const vw=window.innerWidth,vh=window.innerHeight;
-  let left=tr.left+tr.width/2-pw/2;
+  // Prefer above the trigger, fall back to below
   let top=tr.top-ph-10;
   if(top<8)top=tr.bottom+8;
-  if(left+pw>vw-8)left=vw-pw-8;
-  if(left<8)left=8;
+  // Center horizontally on trigger
+  let left=tr.left+tr.width/2-pw/2;
+  // Hard clamp to viewport with 8px margin on all sides
+  top=Math.max(8,Math.min(top,vh-ph-8));
+  left=Math.max(8,Math.min(left,vw-pw-8));
   popup.style.left=left+'px';
   popup.style.top=top+'px';
-  popup.style.position='fixed';
+  popup.style.display='';
+  popup.style.visibility='';
   requestAnimationFrame(()=>popup.classList.add('visible'));
 }
 
@@ -2178,7 +2188,14 @@ function buildSettingsDrawer(){
         document.documentElement.style.setProperty('--green',a.color);
         document.documentElement.style.setProperty('--green2',a.color+'cc');
         const drawer=document.getElementById('settings-drawer');
-        if(drawer){drawer.innerHTML='';drawer.appendChild(buildSettingsDrawer())}
+        if(drawer){
+          const wasOpen=drawer.classList.contains('open');
+          drawer.innerHTML='';
+          const newContent=buildSettingsDrawer();
+          // Move children from the newly built drawer into the existing drawer element
+          while(newContent.firstChild)drawer.appendChild(newContent.firstChild);
+          if(wasOpen)drawer.classList.add('open');
+        }
       });
       return dot;
     })
@@ -2408,6 +2425,623 @@ if(window.__lb && window.__lb.configured && lbIsSetUp()){
   lbStartListening();
 }
 
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ROBO MOTIVATOR — floating AI-style habit coach
+     ═══════════════════════════════════════════════════════════════ -->
+<style>
+/* ── ROBO BUBBLE ── */
+#robo-wrap{position:fixed;bottom:24px;right:24px;z-index:9000;display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-family:'Inter',sans-serif}
+
+/* floating robot button */
+#robo-btn{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#1f6feb,#bc8cff);border:2px solid rgba(255,255,255,.18);box-shadow:0 4px 20px rgba(31,111,235,.45),0 0 0 0 rgba(88,166,255,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;position:relative;animation:robo-float 3s ease-in-out infinite}
+#robo-btn:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(31,111,235,.6),0 0 0 6px rgba(88,166,255,.15)}
+#robo-btn.has-message{box-shadow:0 4px 20px rgba(31,111,235,.45),0 0 0 5px rgba(88,166,255,.25);animation:robo-float 3s ease-in-out infinite,robo-ping 2s ease-in-out 3}
+@keyframes robo-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes robo-ping{0%,100%{box-shadow:0 4px 20px rgba(31,111,235,.45),0 0 0 5px rgba(88,166,255,.25)}50%{box-shadow:0 4px 20px rgba(31,111,235,.45),0 0 0 12px rgba(88,166,255,.0)}}
+
+/* robot SVG face */
+#robo-btn svg{width:32px;height:32px}
+
+/* notification dot */
+#robo-notif{position:absolute;top:2px;right:2px;width:12px;height:12px;background:#39d353;border-radius:50%;border:2px solid var(--bg,#0d1117);display:none;animation:notif-pulse 1.5s infinite}
+@keyframes notif-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+#robo-notif.show{display:block}
+
+/* chat card */
+#robo-card{background:var(--bg2,#161b22);border:1px solid var(--border2,#444c56);border-radius:16px;padding:0;width:300px;box-shadow:0 12px 40px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.3);transform:scale(.85) translateY(10px);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .2s;transform-origin:bottom right}
+#robo-card.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+
+/* card header */
+#robo-card-header{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--border,#30363d)}
+#robo-card-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1f6feb,#bc8cff);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#robo-card-avatar svg{width:20px;height:20px}
+#robo-card-name{flex:1}
+#robo-card-name-text{font-size:12px;font-weight:700;color:var(--text,#e6edf3)}
+#robo-card-status{font-size:10px;color:#39d353;display:flex;align-items:center;gap:4px}
+#robo-status-dot{width:6px;height:6px;border-radius:50%;background:#39d353;animation:notif-pulse 2s infinite}
+#robo-close-btn{background:var(--bg3,#21262d);border:1px solid var(--border,#30363d);color:var(--text2,#8b949e);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+#robo-close-btn:hover{background:var(--bg4,#30363d);color:var(--text,#e6edf3)}
+
+/* time badge */
+#robo-time-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:2px 7px;border-radius:10px;margin:10px 16px 0}
+#robo-time-badge.morning{background:rgba(227,179,65,.15);color:#e3b341;border:1px solid rgba(227,179,65,.25)}
+#robo-time-badge.afternoon{background:rgba(240,136,62,.15);color:#f0883e;border:1px solid rgba(240,136,62,.25)}
+#robo-time-badge.evening{background:rgba(188,140,255,.15);color:#bc8cff;border:1px solid rgba(188,140,255,.25)}
+#robo-time-badge.night{background:rgba(88,166,255,.12);color:#58a6ff;border:1px solid rgba(88,166,255,.2)}
+
+/* message area */
+#robo-msg-wrap{padding:10px 16px 14px;min-height:72px}
+#robo-msg{font-size:12.5px;line-height:1.65;color:var(--text,#e6edf3);transition:opacity .2s}
+#robo-msg.fading{opacity:0}
+
+/* stat pills */
+#robo-stats{display:flex;gap:6px;padding:0 16px 12px;flex-wrap:wrap}
+.robo-pill{background:var(--bg3,#21262d);border:1px solid var(--border,#30363d);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:600;color:var(--text2,#8b949e);display:flex;align-items:center;gap:4px}
+.robo-pill.green{color:#39d353;border-color:rgba(57,211,83,.25);background:rgba(57,211,83,.07)}
+.robo-pill.orange{color:#f0883e;border-color:rgba(240,136,62,.25);background:rgba(240,136,62,.07)}
+.robo-pill.blue{color:#58a6ff;border-color:rgba(88,166,255,.25);background:rgba(88,166,255,.07)}
+
+/* action buttons */
+#robo-actions{display:flex;gap:6px;padding:0 16px 14px;flex-wrap:wrap}
+.robo-action-btn{background:var(--bg3,#21262d);border:1px solid var(--border2,#444c56);color:var(--text2,#8b949e);padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.robo-action-btn:hover{background:var(--bg4,#30363d);color:var(--text,#e6edf3);border-color:var(--text3,#6e7681)}
+.robo-action-btn.primary{background:rgba(31,111,235,.2);border-color:rgba(88,166,255,.35);color:#58a6ff}
+.robo-action-btn.primary:hover{background:rgba(31,111,235,.35)}
+
+/* typing indicator */
+#robo-typing{display:none;padding:0 16px 10px;gap:4px;align-items:center}
+#robo-typing.show{display:flex}
+.robo-dot{width:6px;height:6px;border-radius:50%;background:var(--text3,#6e7681);animation:robo-typing-dot .9s infinite}
+.robo-dot:nth-child(2){animation-delay:.2s}
+.robo-dot:nth-child(3){animation-delay:.4s}
+@keyframes robo-typing-dot{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+
+@media(max-width:480px){
+  #robo-wrap{bottom:16px;right:16px}
+  #robo-card{width:calc(100vw - 32px)}
+}
+</style>
+
+<!-- Robot DOM -->
+<div id="robo-wrap">
+  <div id="robo-card">
+    <div id="robo-card-header">
+      <div id="robo-card-avatar">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="8" width="16" height="12" rx="3" fill="white" fill-opacity=".9"/>
+          <rect x="9" y="4" width="6" height="5" rx="1.5" fill="white" fill-opacity=".7"/>
+          <line x1="12" y1="4" x2="12" y2="2" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="12" cy="1.5" r="1" fill="#e3b341"/>
+          <circle cx="9" cy="13" r="1.8" fill="#1f6feb"/>
+          <circle cx="15" cy="13" r="1.8" fill="#1f6feb"/>
+          <rect x="9" y="17" width="6" height="1.5" rx=".75" fill="#39d353"/>
+        </svg>
+      </div>
+      <div id="robo-card-name">
+        <div id="robo-card-name-text">Byte 🤖</div>
+        <div id="robo-card-status"><span id="robo-status-dot"></span>online</div>
+      </div>
+      <button id="robo-close-btn" onclick="roboClose()">✕</button>
+    </div>
+
+    <div id="robo-time-badge" class="morning">🌅 Morning</div>
+
+    <div id="robo-msg-wrap">
+      <div id="robo-msg">Hey! Loading your stats...</div>
+    </div>
+
+    <div id="robo-typing"><div class="robo-dot"></div><div class="robo-dot"></div><div class="robo-dot"></div></div>
+
+    <div id="robo-stats"></div>
+    <div id="robo-actions"></div>
+  </div>
+
+  <button id="robo-btn" onclick="roboToggle()" title="Talk to Byte">
+    <div id="robo-notif" class="show"></div>
+    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- body -->
+      <rect x="6" y="14" width="24" height="17" rx="5" fill="white" fill-opacity=".92"/>
+      <!-- head -->
+      <rect x="11" y="7" width="14" height="9" rx="3" fill="white" fill-opacity=".75"/>
+      <!-- antenna -->
+      <line x1="18" y1="7" x2="18" y2="4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="18" cy="3" r="2" fill="#e3b341"/>
+      <!-- eyes -->
+      <circle cx="14" cy="21" r="3" fill="#1f6feb"/>
+      <circle cx="22" cy="21" r="3" fill="#1f6feb"/>
+      <circle cx="15" cy="20" r="1" fill="white"/>
+      <circle cx="23" cy="20" r="1" fill="white"/>
+      <!-- mouth -->
+      <path d="M13 27 Q18 30 23 27" stroke="#39d353" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <!-- arms -->
+      <rect x="1" y="17" width="5" height="3" rx="1.5" fill="white" fill-opacity=".6"/>
+      <rect x="30" y="17" width="5" height="3" rx="1.5" fill="white" fill-opacity=".6"/>
+    </svg>
+  </button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  BYTE — the robo motivator engine
+// ══════════════════════════════════════════════════════════════════
+
+// ── TIME SLOT ────────────────────────────────────────────────────
+function getTimeSlot(){
+  const h=new Date().getHours();
+  if(h>=5&&h<12)  return 'morning';
+  if(h>=12&&h<17) return 'afternoon';
+  if(h>=17&&h<21) return 'evening';
+  return 'night';
+}
+function getTimeEmoji(slot){
+  return {morning:'🌅',afternoon:'☀️',evening:'🌆',night:'🌙'}[slot];
+}
+function getTimeLabel(slot){
+  return {morning:'Morning',afternoon:'Afternoon',evening:'Evening',night:'Night'}[slot];
+}
+
+// ── GATHER CONTEXT ────────────────────────────────────────────────
+function roboContext(){
+  const today=new Date().getDate();
+  const slot=getTimeSlot();
+  const habits=state.habits;
+  const done=habits.filter(hb=>state.checks[ck(hb.id,today)]);
+  const undone=habits.filter(hb=>!state.checks[ck(hb.id,today)]);
+  const pct=habits.length?Math.round(done.length/habits.length*100):0;
+
+  // streaks
+  const streaks=habits.map(hb=>{
+    let s=0;
+    for(let d=today;d>=1;d--){
+      if(state.checks[ck(hb.id,d)])s++;else break;
+    }
+    return{...hb,streak:s};
+  }).filter(x=>x.streak>0).sort((a,b)=>b.streak-a.streak);
+
+  // today's mood
+  const moodRaw=state.mood[mk(today)];
+  const moodScore=moodRaw||0;
+  let moodLabel='unknown';
+  if(moodScore>=8)moodLabel='amazing';
+  else if(moodScore>=6)moodLabel='good';
+  else if(moodScore>=4)moodLabel='okay';
+  else if(moodScore>0)moodLabel='rough';
+
+  // monthly pct
+  const days=new Date().getDate();
+  let monthDone=0,monthGoal=0;
+  habits.forEach(hb=>{
+    for(let d=1;d<=days;d++){
+      monthGoal++;
+      if(state.checks[ck(hb.id,d)])monthDone++;
+    }
+  });
+  const monthPct=monthGoal?Math.round(monthDone/monthGoal*100):0;
+
+  // pick a random done and undone habit name
+  const rDone=done.length?done[Math.floor(Math.random()*done.length)]:null;
+  const rUndone=undone.length?undone[Math.floor(Math.random()*undone.length)]:null;
+  const topStreak=streaks[0]||null;
+
+  return{slot,habits,done,undone,pct,streaks,moodLabel,moodScore,monthPct,rDone,rUndone,topStreak,today};
+}
+
+// ── GIANT MESSAGE POOL ────────────────────────────────────────────
+// Each entry: { slots, moods, minPct, maxPct, fn(ctx) → string }
+// slots: array of 'morning'|'afternoon'|'evening'|'night' (or null = any)
+// moods: array of 'amazing'|'good'|'okay'|'rough'|'unknown' (or null = any)
+// minPct / maxPct: completion range (0-100) this message fits
+
+const ROBO_POOL=[
+
+  // ══ MORNING ══════════════════════════════════════════════════
+
+  {slots:['morning'],moods:null,minPct:0,maxPct:10,fn:c=>
+    `Rise and shine! ☀️ New day, clean slate. You've got ${c.habits.length} habits waiting — ${c.undone[0]?.emoji||'✅'} ${c.undone[0]?.name||'your first one'} is a great place to start. Let's gooo.`},
+
+  {slots:['morning'],moods:null,minPct:0,maxPct:10,fn:c=>
+    `Good morning! 🌅 The day is brand new and your streak is on the line. Tap that first checkbox and the momentum does the rest.`},
+
+  {slots:['morning'],moods:['rough'],minPct:0,maxPct:50,fn:c=>
+    `Morning. I see yesterday was a bit rough 😔 — that's okay, today's a completely different story. Start small: just ${c.undone[0]?.emoji||'🎯'} ${c.undone[0]?.name||'one habit'} first.`},
+
+  {slots:['morning'],moods:['amazing','good'],minPct:0,maxPct:30,fn:c=>
+    `You're in a good mood today 😊 — perfect energy to crush ${c.undone.length} habits before noon. Ride that wave!`},
+
+  {slots:['morning'],moods:null,minPct:0,maxPct:5,fn:c=>
+    `0% complete. The day is totally blank. That's not a problem — it's a canvas 🎨 Go paint it.`},
+
+  {slots:['morning'],moods:null,minPct:10,maxPct:40,fn:c=>
+    `Already at ${c.pct}% this morning?? 👀 You're ahead of most people before they've even had coffee. Keep the energy going!`},
+
+  {slots:['morning'],moods:null,minPct:40,maxPct:70,fn:c=>
+    `${c.pct}% done and it's still morning 🔥 Seriously impressive. ${c.undone.length} habits left — you could wrap these up before lunch.`},
+
+  {slots:['morning'],moods:null,minPct:70,maxPct:99,fn:c=>
+    `Almost a perfect morning! 🌟 Just ${c.undone.length} left — ${c.undone.slice(0,2).map(h=>h.name).join(' and ')}. You're so close to 100%.`},
+
+  {slots:['morning'],moods:null,minPct:100,maxPct:100,fn:c=>
+    `100% before noon?! 🤯 Byte is genuinely impressed. Go touch grass, you've already won today.`},
+
+  {slots:['morning'],moods:null,minPct:0,maxPct:100,fn:c=>
+    c.topStreak?`Morning check! 🌅 Your ${c.topStreak.emoji} ${c.topStreak.name} streak is at ${c.topStreak.streak} days — don't let it die today. Not on Byte's watch.`
+    :`Morning! No active streaks yet — today is the perfect day to start one 💪`},
+
+  {slots:['morning'],moods:null,minPct:0,maxPct:50,fn:c=>
+    `The best time to start was yesterday. The second best time is RIGHT NOW 🎯 You've got ${c.undone.length} habits waiting.`},
+
+  {slots:['morning'],moods:['amazing'],minPct:0,maxPct:100,fn:c=>
+    `You're feeling amazing today 🤩 — that's rare energy, don't waste it! Channel it into ${c.undone[0]?.name||'your habits'} first thing.`},
+
+  // ══ AFTERNOON ════════════════════════════════════════════════
+
+  {slots:['afternoon'],moods:null,minPct:0,maxPct:20,fn:c=>
+    `Hey! It's already afternoon and you're at ${c.pct}% 😬 No panic though — ${c.undone.length} habits, still plenty of daylight. Let's get moving.`},
+
+  {slots:['afternoon'],moods:null,minPct:0,maxPct:10,fn:c=>
+    `Afternoon already 😅 The morning slipped away but the day isn't over. ${c.undone[0]?.emoji||'🎯'} ${c.undone[0]?.name||'Start with one habit'} — just one to get the ball rolling.`},
+
+  {slots:['afternoon'],moods:['rough'],minPct:0,maxPct:40,fn:c=>
+    `Rough day, I get it. But here's the thing — even checking off ${c.undone[0]?.name||'one habit'} will make you feel better than checking off zero. Trust the process.`},
+
+  {slots:['afternoon'],moods:null,minPct:20,maxPct:50,fn:c=>
+    `${c.pct}% at midday — not bad, not great 🤔 You're right in the middle. The difference between a good day and a great day is just ${c.undone.length} more checkboxes.`},
+
+  {slots:['afternoon'],moods:null,minPct:50,maxPct:75,fn:c=>
+    `Over halfway through at midday — that's solid! 💪 ${c.done.length} done, ${c.undone.length} left. The hard part's over, finish strong.`},
+
+  {slots:['afternoon'],moods:null,minPct:75,maxPct:99,fn:c=>
+    `${c.pct}% in the afternoon?? 🔥 You're almost at a perfect day. Just ${c.undone.map(h=>h.name).join(', ')} left standing between you and 100%.`},
+
+  {slots:['afternoon'],moods:null,minPct:100,maxPct:100,fn:c=>
+    `Full 100% and it's not even evening yet 🏆 Byte is taking notes. Seriously, what's your secret?`},
+
+  {slots:['afternoon'],moods:null,minPct:0,maxPct:100,fn:c=>
+    c.topStreak?`Quick afternoon check — ${c.topStreak.name} streak is at ${c.topStreak.streak} days 🔥 That's not something you want to lose over a lazy afternoon. Go handle it.`
+    :`Afternoon! Build a streak today — just do ${c.undone[0]?.name||'any habit'} consistently for a week and watch yourself transform.`},
+
+  {slots:['afternoon'],moods:['good','amazing'],minPct:30,maxPct:70,fn:c=>
+    `Good mood + solid progress = dangerous combo 😈 You've still got ${c.undone.length} habits left and the energy to crush them. Don't stop here.`},
+
+  {slots:['afternoon'],moods:null,minPct:0,maxPct:30,fn:c=>
+    `The afternoon slump is real, but so is your ${c.monthPct}% monthly rate. You didn't build that by quitting at 3pm. Let's go 💫`},
+
+  {slots:['afternoon'],moods:null,minPct:0,maxPct:100,fn:c=>
+    `Fun fact: people who do their habits before 5pm are 40% more consistent. You still have time to be that person ⏰`},
+
+  // ══ EVENING ══════════════════════════════════════════════════
+
+  {slots:['evening'],moods:null,minPct:0,maxPct:30,fn:c=>
+    `Evening alert ⚠️ Only ${c.pct}% done and the day is winding down. You've got maybe 2-3 hours of good energy left — use them.`},
+
+  {slots:['evening'],moods:null,minPct:0,maxPct:15,fn:c=>
+    `Hey… it's evening and you're only at ${c.pct}% 😬 No judgment, but ${c.undone.slice(0,3).map(h=>h.emoji+h.name).join(', ')} can still happen tonight. Don't close the day on a low note.`},
+
+  {slots:['evening'],moods:['rough'],minPct:0,maxPct:50,fn:c=>
+    `Evening, and a rough day mood-wise 💙 It's okay. Even one more habit checked off means you fought back. That matters more than the number.`},
+
+  {slots:['evening'],moods:null,minPct:30,maxPct:60,fn:c=>
+    `Evening and at ${c.pct}% — you're in the zone 🎯 ${c.undone.length} left. Knock out the quick ones first: ${c.undone[0]?.name||'start anywhere'}.`},
+
+  {slots:['evening'],moods:null,minPct:60,maxPct:85,fn:c=>
+    `${c.pct}% with evening still ahead — that's a good day! 🌆 Wrap up ${c.undone.map(h=>h.name).join(' and ')} before you sit down for the night.`},
+
+  {slots:['evening'],moods:null,minPct:85,maxPct:99,fn:c=>
+    `So close!! ${c.pct}% done 😤 Just ${c.undone.map(h=>h.emoji+' '+h.name).join(', ')} left. Don't let the evening steal a perfect day from you.`},
+
+  {slots:['evening'],moods:null,minPct:100,maxPct:100,fn:c=>
+    `Perfect day! 🌟 100% done before the night even starts. Byte is proud of you. Genuinely. Now rest — you earned it.`},
+
+  {slots:['evening'],moods:null,minPct:0,maxPct:100,fn:c=>
+    c.topStreak?`Evening check-in 🌆 Your ${c.topStreak.name} streak (${c.topStreak.streak} days!) is still alive. Make sure it stays that way before you sleep.`
+    :`Evening! Start a streak tonight — just pick one habit and commit to it every day this week. Future you will be grateful.`},
+
+  {slots:['evening'],moods:['good','amazing'],minPct:50,maxPct:100,fn:c=>
+    `Great mood + great progress 🌟 The evening version of you is thriving. Lock in the last few and make it a perfect record.`},
+
+  {slots:['evening'],moods:null,minPct:0,maxPct:40,fn:c=>
+    `Evening reminder: your monthly rate is ${c.monthPct}%. Every day you finish strong pushes that number up. Tonight still counts 📈`},
+
+  {slots:['evening'],moods:null,minPct:0,maxPct:100,fn:c=>
+    `Before you wind down — take 5 mins to knock out ${c.undone[0]?.name||'one habit'}. You won't regret it. You always regret not doing it 💫`},
+
+  // ══ NIGHT ════════════════════════════════════════════════════
+
+  {slots:['night'],moods:null,minPct:0,maxPct:40,fn:c=>
+    `Night owl hours 🌙 Only ${c.pct}% today. That's okay — tomorrow is literally a fresh start. But maybe ${c.undone[0]?.name||'one quick habit'} before you sleep?`},
+
+  {slots:['night'],moods:null,minPct:0,maxPct:20,fn:c=>
+    `It's late and the day was tough, huh? 🌙 Only ${c.pct}% done. Don't beat yourself up — just get ${c.undone[0]?.name||'one thing'} done and sleep with a clear conscience.`},
+
+  {slots:['night'],moods:['rough'],minPct:0,maxPct:100,fn:c=>
+    `Rough day mood-wise tonight 🌙 Byte gets it. Rest matters too. But if you can do just one more thing — ${c.undone[0]?.name||'anything'} — it'll feel better in the morning.`},
+
+  {slots:['night'],moods:null,minPct:40,maxPct:70,fn:c=>
+    `${c.pct}% at night — decent day! 🌙 Not perfect, but consistent effort over time is what builds the life you want. Sleep well.`},
+
+  {slots:['night'],moods:null,minPct:70,maxPct:95,fn:c=>
+    `${c.pct}% — that's a great day by any measure 💫 Only ${c.undone.length} left. Quick question: can you do ${c.undone[0]?.name||'one more'} before bed?`},
+
+  {slots:['night'],moods:null,minPct:95,maxPct:99,fn:c=>
+    `SO CLOSE to 100% 😤 Just ${c.undone.map(h=>h.name).join(' & ')} standing between you and a perfect day. You can't sleep on this.`},
+
+  {slots:['night'],moods:null,minPct:100,maxPct:100,fn:c=>
+    `100% day. 🏆 Sleep like a champion — you absolutely earned it. See you bright and early tomorrow, Byte will be here.`},
+
+  {slots:['night'],moods:null,minPct:0,maxPct:100,fn:c=>
+    c.topStreak?`Before you sleep 🌙 — ${c.topStreak.name} streak is ${c.topStreak.streak} days strong. Log it if you haven't. Don't let sleep kill that streak.`
+    :`Night 🌙 Tomorrow, try to build your first 3-day streak on any habit. It only takes 3 days to start feeling the difference.`},
+
+  {slots:['night'],moods:null,minPct:0,maxPct:100,fn:c=>
+    `Monthly rate is ${c.monthPct}% 📊 ${c.monthPct>=70?'You\'re crushing it this month. Sleep proud.':c.monthPct>=50?'Solid month so far. Keep the trend going tomorrow.':'Still time to turn this month around. Tomorrow is a fresh shot.'}`},
+
+  {slots:['night'],moods:['amazing','good'],minPct:60,maxPct:100,fn:c=>
+    `Good mood, great day — ${c.pct}% done 🌙✨ This is what it feels like when you show up for yourself. Remember this feeling.`},
+
+  // ══ ANY TIME — STREAK HYPE ═══════════════════════════════════
+
+  {slots:null,moods:null,minPct:0,maxPct:100,fn:c=>
+    c.topStreak&&c.topStreak.streak>=7?`🔥 ${c.topStreak.streak}-day streak on ${c.topStreak.name}!! That's over a week of pure consistency. Protect that streak like it's your most prized possession.`
+    :c.topStreak&&c.topStreak.streak>=3?`${c.topStreak.streak}-day streak on ${c.topStreak.name} 💪 You're in the habit-forming zone — 21 days is the magic number and you're already on your way!`
+    :`No active streaks today, but every legend starts somewhere. Pick one habit and go 3 days in a row — that's your mission.`},
+
+  {slots:null,moods:null,minPct:0,maxPct:100,fn:c=>
+    c.streaks.length>=3?`You've got ${c.streaks.length} active streaks running right now 🔥 ${c.streaks.slice(0,3).map(h=>h.emoji+h.name+'('+h.streak+'d)').join(', ')}. That's not luck, that's discipline.`
+    :c.streaks.length===1?`One streak alive — ${c.streaks[0].emoji} ${c.streaks[0].name} at ${c.streaks[0].streak} days. Make it two. Go do another habit right now.`
+    :`Fresh start energy 🌱 No streaks to maintain, no pressure. Just build one today.`},
+
+  // ══ ANY TIME — MOOD-BASED ═══════════════════════════════════
+
+  {slots:null,moods:['amazing'],minPct:0,maxPct:100,fn:c=>
+    `You marked yourself as feeling amazing today 🤩 Peak days like this are rare — make sure your habit log reflects how hard you went.`},
+
+  {slots:null,moods:['rough'],minPct:0,maxPct:100,fn:c=>
+    `Rough day 💙 Even legends have them. The goal today isn't to be perfect — it's to just show up. Even one checkbox is a win.`},
+
+  {slots:null,moods:['rough'],minPct:0,maxPct:30,fn:c=>
+    `You're feeling rough AND progress is low today. That combination is hard. But Byte believes: the days you push through difficulty are the ones that define you 💪`},
+
+  {slots:null,moods:['okay'],minPct:0,maxPct:50,fn:c=>
+    `Feeling "okay" today? That's actually great starting energy. Most breakthroughs happen on "okay" days — the amazing days just feel good already.`},
+
+  // ══ ANY TIME — PROGRESS BASED ═══════════════════════════════
+
+  {slots:null,moods:null,minPct:0,maxPct:5,fn:c=>
+    `Zero done so far. The hardest part of any habit is starting. Literally just tap one checkbox — that's all. One. Tap. Go.`},
+
+  {slots:null,moods:null,minPct:1,maxPct:25,fn:c=>
+    `${c.pct}% done — you've started, and starting is everything. The first checkbox is always the hardest. Now do one more 💪`},
+
+  {slots:null,moods:null,minPct:25,maxPct:50,fn:c=>
+    `Quarter to halfway done — you're in the build zone 📈 ${c.done.length} habits crushed, ${c.undone.length} to go. The momentum is yours.`},
+
+  {slots:null,moods:null,minPct:50,maxPct:50,fn:c=>
+    `Exactly halfway! ⚡ 50/50. The coin is in the air. Which way does it land? That's entirely up to you.`},
+
+  {slots:null,moods:null,minPct:51,maxPct:75,fn:c=>
+    `Over halfway and building 🔥 ${c.done.map(h=>h.emoji).join('')} done. Only ${c.undone.length} left — ${c.rUndone?.name||'keep going'} is next.`},
+
+  {slots:null,moods:null,minPct:76,maxPct:90,fn:c=>
+    `${c.pct}% is genuinely impressive 💫 You've crushed ${c.done.length} habits. Just ${c.undone.map(h=>h.name).join(', ')} left — so close to a perfect day.`},
+
+  {slots:null,moods:null,minPct:91,maxPct:99,fn:c=>
+    `ALMOST THERE 😤 ${c.pct}% done — ${c.undone.map(h=>h.emoji+' '+h.name).join(' and ')} is all that's between you and 100%. Don't stop now!!`},
+
+  {slots:null,moods:null,minPct:100,maxPct:100,fn:c=>
+    `PERFECT DAY 🏆🎉 ${c.habits.length}/${c.habits.length} habits complete. Byte is doing a little robot dance right now. You absolutely crushed it.`},
+
+  // ══ ANY TIME — MONTHLY CONTEXT ═══════════════════════════════
+
+  {slots:null,moods:null,minPct:0,maxPct:100,fn:c=>
+    `Monthly consistency: ${c.monthPct}% 📊 ${c.monthPct>=80?'Top tier. You\'re what dedication looks like.':c.monthPct>=60?'Solid. A few more strong days and you\'ll be elite.':c.monthPct>=40?'Room to grow. Every day you push hard moves that number.':'The month isn\'t over — you can still turn this around.'}`},
+
+  {slots:null,moods:null,minPct:0,maxPct:100,fn:c=>
+    c.rDone?`${c.rDone.emoji} ${c.rDone.name} — already done today. One less thing to think about. That's the beauty of building systems 🧠`
+    :`Nothing done yet — but nothing's permanent. Start with ${c.undone[0]?.emoji||'✅'} ${c.undone[0]?.name||'your first habit'}.`},
+
+  {slots:null,moods:null,minPct:0,maxPct:100,fn:c=>
+    c.rUndone?`Still waiting on ${c.rUndone.emoji} ${c.rUndone.name}. It's been on the list all day. What's holding you back? Just go do it 🎯`
+    :`Everything's done! Byte has nothing left to nag you about 😂 Perfect.`},
+
+  // ══ FUN / PERSONALITY ════════════════════════════════════════
+
+  {slots:null,moods:null,minPct:0,maxPct:100,fn:c=>
+    `Byte tip of the day 💡 Stack your habits. Do ${c.undone[0]?.name||'one habit'} right after something you already do every day — the routine builds itself.`},
+
+  {slots:null,moods:null,minPct:0,maxPct:100,fn:c=>
+    `You've got ${c.habits.length} habits tracked. That's ${c.habits.length} daily investments in yourself. Even 50% done is ${c.habits.length*15} minutes of self-improvement 📈`},
+
+  {slots:null,moods:null,minPct:60,maxPct:100,fn:c=>
+    `Did you know? People who track habits are 2x more likely to follow through. You're literally using science to level up 🧬`},
+
+  {slots:null,moods:null,minPct:0,maxPct:100,fn:c=>
+    `Byte observation 🤖 The days you feel least like doing your habits are exactly the days that matter most. Just saying.`},
+
+  {slots:null,moods:null,minPct:0,maxPct:100,fn:c=>
+    `Fun math 📐 If you hit ${c.monthPct}% every month, that's ${Math.round(c.monthPct*3.65)} completed habit-days per year. Compound that. Wild right?`},
+];
+
+// ── PICK A MESSAGE ────────────────────────────────────────────────
+let _lastMsgIdx=-1;
+let _usedIdxs=[];
+
+function roboPickMessage(ctx){
+  const slot=ctx.slot;
+  const mood=ctx.moodLabel;
+  const pct=ctx.pct;
+
+  // filter eligible messages
+  let pool=ROBO_POOL.filter((m,i)=>{
+    const slotOk=!m.slots||m.slots.includes(slot);
+    const moodOk=!m.moods||m.moods.includes(mood);
+    const pctOk=pct>=m.minPct&&pct<=m.maxPct;
+    return slotOk&&moodOk&&pctOk;
+  });
+
+  // if too few, open up to any-time messages
+  if(pool.length<3){
+    pool=ROBO_POOL.filter(m=>{
+      const pctOk=pct>=m.minPct&&pct<=m.maxPct;
+      return pctOk;
+    });
+  }
+
+  // avoid repeating recently used
+  let candidates=pool.filter((_,i)=>!_usedIdxs.includes(ROBO_POOL.indexOf(pool[i])));
+  if(!candidates.length){_usedIdxs=[];candidates=pool;}
+
+  const chosen=candidates[Math.floor(Math.random()*candidates.length)];
+  _usedIdxs.push(ROBO_POOL.indexOf(chosen));
+  if(_usedIdxs.length>8)_usedIdxs.shift();
+
+  return chosen?chosen.fn(ctx):'Hey! Keep going with your habits today 💪';
+}
+
+// ── FOLLOW-UP REPLIES ─────────────────────────────────────────────
+const ROBO_REPLIES={
+  'whats_left': c=>c.undone.length
+    ?`Still left today: ${c.undone.map(h=>h.emoji+' '+h.name).join(' · ')} — ${c.undone.length} to go 💪`
+    :`Nothing left! You're done for today 🎉 Perfect day!`,
+
+  'how_month': c=>`Your monthly consistency is ${c.monthPct}% 📊 ${c.done.length} done today out of ${c.habits.length}. ${c.monthPct>=70?'Keep this up, you\'re building something real.':'Every strong day pushes this number up. Make today count.'}`,
+
+  'streaks': c=>c.streaks.length
+    ?`Active streaks 🔥\n${c.streaks.slice(0,5).map(h=>`${h.emoji} ${h.name} — ${h.streak} day${h.streak>1?'s':''}`).join('\n')}`
+    :`No active streaks right now — but do any habit today and come back tomorrow. That's day 1.`,
+
+  'motivate': c=>{
+    const extras=[
+      `You didn't come this far to only come this far. ${c.undone[0]?.name||'Keep going'} 💥`,
+      `${c.habits.length} habits. ${c.done.length} done. ${c.undone.length} standing between you and your best self. Go get them.`,
+      `The version of you 6 months from now is being built right now. Make them proud 🏆`,
+      `Hard days build strong habits. You're not behind — you're building resilience 💪`,
+      `Byte believes in you more than you currently believe in yourself. That's a fact 🤖`,
+    ];
+    return extras[Math.floor(Math.random()*extras.length)];
+  },
+};
+
+// ── UI HELPERS ────────────────────────────────────────────────────
+function roboSetTimeBadge(slot){
+  const badge=document.getElementById('robo-time-badge');
+  if(!badge)return;
+  badge.className=`${slot}`;
+  badge.id='robo-time-badge';
+  badge.textContent=`${getTimeEmoji(slot)} ${getTimeLabel(slot)}`;
+}
+
+function roboSetStats(ctx){
+  const wrap=document.getElementById('robo-stats');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  const add=(icon,text,cls)=>{
+    const p=document.createElement('div');
+    p.className=`robo-pill ${cls||''}`;
+    p.textContent=`${icon} ${text}`;
+    wrap.appendChild(p);
+  };
+  add('✅',`${ctx.done.length}/${ctx.habits.length} done`,ctx.pct>=70?'green':ctx.pct>=40?'orange':'');
+  if(ctx.topStreak)add('🔥',`${ctx.topStreak.streak}d streak`,'orange');
+  add('📊',`${ctx.monthPct}% month`,ctx.monthPct>=70?'green':ctx.monthPct>=50?'blue':'');
+}
+
+function roboSetActions(ctx,mode){
+  const wrap=document.getElementById('robo-actions');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  const btn=(label,fn,primary)=>{
+    const b=document.createElement('button');
+    b.className='robo-action-btn'+(primary?' primary':'');
+    b.textContent=label;
+    b.onclick=fn;
+    wrap.appendChild(b);
+  };
+  if(mode==='main'){
+    if(ctx.undone.length)btn("What's left? 👀",()=>roboReply('whats_left'));
+    btn('My streaks 🔥',()=>roboReply('streaks'));
+    btn('Hype me up 💥',()=>roboReply('motivate'),true);
+  } else {
+    btn('← Back',()=>roboShowMain(),false);
+    btn('Hype me up 💥',()=>roboReply('motivate'),true);
+  }
+}
+
+function roboSetMsg(text){
+  const el=document.getElementById('robo-msg');
+  if(!el)return;
+  el.classList.add('fading');
+  setTimeout(()=>{
+    el.textContent=text;
+    el.classList.remove('fading');
+  },200);
+}
+
+function roboShowTyping(ms){
+  return new Promise(res=>{
+    const t=document.getElementById('robo-typing');
+    const m=document.getElementById('robo-msg-wrap');
+    if(t){t.classList.add('show');if(m)m.style.opacity='.4';}
+    setTimeout(()=>{
+      if(t)t.classList.remove('show');
+      if(m)m.style.opacity='';
+      res();
+    },ms);
+  });
+}
+
+// ── MAIN ACTIONS ──────────────────────────────────────────────────
+function roboShowMain(){
+  const ctx=roboContext();
+  roboSetTimeBadge(ctx.slot);
+  roboSetStats(ctx);
+  roboSetActions(ctx,'main');
+  const msg=roboPickMessage(ctx);
+  roboSetMsg(msg);
+}
+
+async function roboReply(key){
+  const ctx=roboContext();
+  roboSetActions(ctx,'reply');
+  await roboShowTyping(900);
+  const fn=ROBO_REPLIES[key];
+  const msg=fn?fn(ctx):'Keep going! 💪';
+  roboSetMsg(msg);
+}
+
+let _roboOpen=false;
+function roboToggle(){
+  const card=document.getElementById('robo-card');
+  const notif=document.getElementById('robo-notif');
+  if(!card)return;
+  _roboOpen=!_roboOpen;
+  card.classList.toggle('open',_roboOpen);
+  if(_roboOpen){
+    if(notif)notif.classList.remove('show');
+    roboShowMain();
+  }
+}
+function roboClose(){
+  const card=document.getElementById('robo-card');
+  if(card)card.classList.remove('open');
+  _roboOpen=false;
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────
+// Show notification dot after 3 seconds to prompt user
+setTimeout(()=>{
+  const notif=document.getElementById('robo-notif');
+  if(notif)notif.classList.add('show');
+},3000);
+
+// Auto-open once on first visit
+if(!localStorage.getItem('ht2_robo_greeted')){
+  setTimeout(()=>{
+    localStorage.setItem('ht2_robo_greeted','1');
+    roboToggle();
+  },1800);
+}
 </script>
 </body>
 </html>
