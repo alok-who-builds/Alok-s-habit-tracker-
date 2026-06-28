@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>📔 Habit Tracker</title>
+<title>📔 Ascend — Build the life you're proud of</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,10 +28,11 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-h
 .main-content{margin-left:220px;flex:1;min-width:0;padding:20px 20px 20px 20px;display:flex;flex-direction:column;gap:16px;max-width:100%;transition:margin-left .3s cubic-bezier(.4,0,.2,1);padding-top:60px}
 
 /* SIDEBAR */
-.sb-logo{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-logo{padding:16px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.sb-logo-toprow{display:flex;align-items:center;gap:10px}
 .sb-logo-icon{font-size:22px}
 .sb-logo-text{font-size:15px;font-weight:700;letter-spacing:-.3px}
-.sb-logo-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.sb-logo-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;padding-left:32px}
 .sb-section{padding:12px 14px;border-bottom:1px solid var(--border)}
 .sb-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:8px}
 .month-nav{display:flex;align-items:center;gap:6px;margin-bottom:8px}
@@ -97,21 +98,67 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-h
 .drawer-reset-btn.danger-btn{color:#f85149;border-color:rgba(248,81,73,.25)}
 .drawer-reset-btn.danger-btn:hover{background:rgba(248,81,73,.12);border-color:#f85149}
 
-/* Light theme overrides */
+/* ── LIGHT MODE — warm journal theme ── */
 body.light-mode{
-  --bg:#f6f8fa;--bg2:#ffffff;--bg3:#f0f2f5;--bg4:#e1e4e8;
-  --border:#d0d7de;--border2:#b1bac4;
-  --text:#1f2328;--text2:#57606a;--text3:#8c959f;
-  --card-bg:#ffffff;--card-border:#d0d7de;
-  --radar-bg:#f6f8fa;
+  --bg:#fdf6ee;--bg2:#fffcf7;--bg3:#f5ede0;--bg4:#ecddd0;
+  --border:#e2d4c4;--border2:#cfc0ad;
+  --text:#2c1f14;--text2:#6b4f38;--text3:#a08060;
+  --card-bg:#fffcf7;--card-border:#e8d9c8;
+  --radar-bg:#fdf6ee;
+  --green:#2d9e52;--green2:#27854a;--green3:#1f6b3a;--green4:#d6f0e0;
+  --blue:#2f7fd4;--blue2:#1a5fa8;
+  --orange:#d96b20;--orange2:#b85a18;
+  --gold:#c9920a;
 }
-body.light-mode .heat-cell[data-level="0"]{background:#ebedf0}
-body.light-mode .heat-cell[data-level="1"]{background:#9be9a8}
-body.light-mode .heat-cell[data-level="2"]{background:#40c463}
+/* warm parchment page background */
+body.light-mode{background:linear-gradient(160deg,#fdf6ee 0%,#fef9f2 60%,#fbf0e4 100%)}
+/* sidebar warm cream */
+body.light-mode .sidebar{background:linear-gradient(180deg,#fffcf7 0%,#fdf6ee 100%);border-right-color:#e2d4c4;box-shadow:2px 0 12px rgba(180,140,100,.1)}
+body.light-mode .sb-logo{background:linear-gradient(135deg,#fff8f0,#fdf0e0);border-bottom-color:#e2d4c4}
+body.light-mode .sb-logo-text{color:#2c1f14}
+body.light-mode .sb-logo-sub{color:#a08060}
+/* warm cards with subtle shadow */
+body.light-mode .card{background:linear-gradient(150deg,#fffcf7 0%,#fff8f2 100%);border-color:#e8d9c8;box-shadow:0 2px 12px rgba(160,110,70,.09),0 1px 3px rgba(160,110,70,.06)}
+body.light-mode .card:hover{box-shadow:0 4px 20px rgba(160,110,70,.14),0 1px 4px rgba(160,110,70,.08)}
+/* month header gets a warm gradient */
+body.light-mode .month-header{background:linear-gradient(135deg,#fff4e6 0%,#ffe8cc 60%,#ffddb3 100%);border-color:#e8c99a;box-shadow:0 2px 12px rgba(200,140,70,.12)}
+body.light-mode .mh-left h1{color:#2c1f14}
+body.light-mode .mh-left p{color:#a08060}
+/* checklist cards */
+body.light-mode .check-card{background:linear-gradient(135deg,#fdf8f2 0%,#faf3ea 100%);border-color:#e2d4c4}
+body.light-mode .check-card:hover{background:linear-gradient(135deg,#fff4e6 0%,#ffefd8 100%);border-color:#cfc0ad}
+body.light-mode .check-card.done{background:linear-gradient(135deg,#e8f7ee 0%,#d6f0e0 100%);border-color:#a8dbb8}
+body.light-mode .check-icon{border-color:#cfc0ad;background:#fffcf7}
+body.light-mode .check-card.done .check-icon{background:var(--green);border-color:var(--green)}
+/* stat badges */
+body.light-mode .stat-badge{background:linear-gradient(135deg,#fdf4e8 0%,#faeadb 100%);border-color:#e2d4c4;box-shadow:0 1px 4px rgba(160,110,70,.08)}
+/* settings drawer */
+body.light-mode .settings-drawer{background:linear-gradient(180deg,#fffcf7,#fdf6ee);border-color:#e2d4c4;box-shadow:0 -6px 24px rgba(160,110,70,.12)}
+body.light-mode .settings-drawer-header{border-bottom-color:#e2d4c4;background:linear-gradient(135deg,#fff4e6,#faeadb)}
+body.light-mode .toggle-track{background:#e2d4c4;border-color:#cfc0ad}
+body.light-mode .mood-day-card{background:linear-gradient(135deg,#fdf8f2,#faf3ea);border-color:#e2d4c4}
+body.light-mode .mood-day-card.today-card{background:linear-gradient(135deg,#e8f7ee,#d6f0e0);border-color:#82c99a}
+body.light-mode .add-habit-btn{background:linear-gradient(135deg,#e8f7ee,#d6f0e0);border-color:#82c99a;color:var(--green)}
+body.light-mode .add-habit-btn:hover{background:linear-gradient(135deg,#d6f0e0,#bce8cc)}
+body.light-mode .modal{background:linear-gradient(150deg,#fffcf7,#fdf6ee);border-color:#e8d9c8;box-shadow:0 24px 60px rgba(100,60,20,.2)}
+body.light-mode .modal input[type=text],.light-mode .modal select{background:#fdf4e8;border-color:#e2d4c4;color:#2c1f14}
+body.light-mode .eg,.light-mode .cr{background:#fdf4e8;border-color:#e2d4c4}
+body.light-mode .at tr:hover td{background:#fdf4e8}
+body.light-mode .at th{border-bottom-color:#e2d4c4;color:#a08060}
+body.light-mode .at td{border-bottom-color:#f0e4d4}
+body.light-mode .pb-bg{background:#ecddd0}
+/* heatmap */
+body.light-mode .heat-cell[data-level="0"]{background:#f0e6d8}
+body.light-mode .heat-cell[data-level="1"]{background:#b8e4c4}
+body.light-mode .heat-cell[data-level="2"]{background:#6dcc8a}
 body.light-mode .heat-cell[data-level="3"]{background:#30a14e}
-body.light-mode .heat-cell[data-level="4"]{background:#216e39;box-shadow:none}
-body.light-mode .heat-cell[data-level="5"]{background:#155226;box-shadow:none}
-body.light-mode .month-header{background:linear-gradient(135deg,#f0f2f5 0%,#e8eaed 100%)}
+body.light-mode .heat-cell[data-level="4"]{background:#1e7a38;box-shadow:0 0 4px rgba(30,122,56,.4)}
+body.light-mode .heat-cell[data-level="5"]{background:#155226;box-shadow:0 0 8px rgba(21,82,38,.5)}
+/* scrollbar warm */
+body.light-mode ::-webkit-scrollbar-track{background:#f5ede0}
+body.light-mode ::-webkit-scrollbar-thumb{background:#cfc0ad;border-radius:4px}
+body.light-mode .hamburger{background:#fffcf7;border-color:#e2d4c4;color:#2c1f14;box-shadow:0 2px 8px rgba(160,110,70,.15)}
+body.light-mode .sb-overlay{background:rgba(44,31,20,.45)}
 
 /* COMPACT MODE */
 body.compact-mode .card{padding:10px}
@@ -291,6 +338,45 @@ body.compact-mode .checklist-grid{gap:5px}
 .note-modal-cancel{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:8px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;transition:all .15s}
 .note-modal-cancel:hover{background:var(--bg4);color:var(--text)}
 
+/* ── HOW TO USE MODAL — Ascend branded ── */
+.howto-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:800;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .18s ease;padding:16px}
+.howto-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:18px;width:min(640px,100%);max-height:88vh;overflow-y:auto;box-shadow:0 28px 80px rgba(0,0,0,.65);display:flex;flex-direction:column;animation:popIn .22s cubic-bezier(.34,1.56,.64,1)}
+.howto-header{background:linear-gradient(135deg,#1a2a4a 0%,#0d1117 50%,#1a0d2e 100%);padding:28px 28px 22px;border-radius:18px 18px 0 0;position:sticky;top:0;z-index:2;flex-shrink:0}
+.howto-brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.howto-brand-icon{font-size:32px;line-height:1}
+.howto-brand-name{font-size:26px;font-weight:800;letter-spacing:-.8px;background:linear-gradient(135deg,#58a6ff,#bc8cff,#39d353);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.howto-brand-sub{font-size:11px;color:#8b949e;letter-spacing:.5px;font-style:italic}
+.howto-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#e6edf3;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.howto-close:hover{background:rgba(255,255,255,.2)}
+.howto-body{padding:24px 28px 28px;display:flex;flex-direction:column;gap:20px}
+.howto-section{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden}
+.howto-section::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;border-radius:2px 0 0 2px}
+.howto-section.s-green::before{background:linear-gradient(180deg,#39d353,#26a641)}
+.howto-section.s-blue::before{background:linear-gradient(180deg,#58a6ff,#1f6feb)}
+.howto-section.s-orange::before{background:linear-gradient(180deg,#f0883e,#d08030)}
+.howto-section.s-purple::before{background:linear-gradient(180deg,#bc8cff,#9b5de5)}
+.howto-section.s-gold::before{background:linear-gradient(180deg,#e3b341,#c99a20)}
+.howto-section.s-red::before{background:linear-gradient(180deg,#f85149,#c93d36)}
+.howto-section.s-teal::before{background:linear-gradient(180deg,#39c5c5,#1a9b9b)}
+.howto-section-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.howto-section-title span{font-size:18px}
+.howto-section p{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px}
+.howto-section p:last-child{margin-bottom:0}
+.howto-tip{background:var(--bg4);border-radius:7px;padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.6;margin-top:8px;border-left:2px solid var(--green)}
+.howto-tag{display:inline-flex;align-items:center;gap:4px;background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.22);border-radius:20px;padding:1px 8px;font-size:10px;font-weight:600;margin:2px 2px}
+.howto-tag.orange{background:rgba(240,136,62,.12);color:var(--orange);border-color:rgba(240,136,62,.22)}
+.howto-tag.green{background:rgba(57,211,83,.1);color:var(--green);border-color:rgba(57,211,83,.2)}
+.howto-tag.red{background:rgba(248,81,73,.1);color:#f85149;border-color:rgba(248,81,73,.2)}
+.howto-footer{text-align:center;padding:0 28px 24px;font-size:11px;color:var(--text3);line-height:1.8}
+.howto-footer strong{color:var(--text2)}
+@media(max-width:600px){
+  .howto-modal{max-height:92vh;border-radius:14px}
+  .howto-header{padding:20px 18px 16px;border-radius:14px 14px 0 0}
+  .howto-brand-name{font-size:22px}
+  .howto-body{padding:16px 18px 20px;gap:14px}
+  .howto-section{padding:13px 14px}
+}
+
 /* Mood sparkline */
 .mood-sparkline-wrap{margin-bottom:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)}
 .mood-sparkline-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:6px;font-weight:500}
@@ -353,20 +439,46 @@ body.compact-mode .checklist-grid{gap:5px}
 .sched-alt-btn.active{background:rgba(57,211,83,.12);border-color:var(--green2);color:var(--green)}
 .sched-xweek-row{display:flex;gap:6px;align-items:center;margin-bottom:10px}
 
-/* ── TIME WINDOW (modal form) ── */
-.tw-toggle-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;margin-bottom:8px;user-select:none}
-.tw-toggle-row input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--blue2)}
-.tw-time-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.tw-time-input{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:'JetBrains Mono',monospace}
-.tw-hint{font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:12px;background:var(--bg3);border-radius:6px;padding:7px 9px}
+/* ── TIME WINDOW (modal form) — styled GUI ── */
+.tw-toggle-row{display:flex;align-items:center;gap:0;margin-bottom:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;overflow:hidden;cursor:pointer;user-select:none}
+.tw-toggle-opt{flex:1;text-align:center;padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);transition:all .15s}
+.tw-toggle-opt.active{background:var(--blue2);color:#fff}
+.tw-toggle-opt:first-child{border-right:1px solid var(--border2)}
+/* visual time range picker */
+.tw-picker{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:10px}
+.tw-picker-row{display:flex;align-items:center;gap:10px}
+.tw-picker-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);width:34px;flex-shrink:0}
+.tw-time-input{background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;width:110px;transition:border-color .15s,box-shadow .15s}
+.tw-time-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.12)}
+/* visual timeline bar */
+.tw-timeline{position:relative;height:6px;background:var(--bg4);border-radius:3px;margin:2px 0}
+.tw-timeline-fill{position:absolute;top:0;height:100%;background:linear-gradient(90deg,var(--blue2),var(--blue));border-radius:3px;transition:left .3s,width .3s}
+.tw-timeline-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.tw-hint{font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:12px;background:var(--bg3);border-radius:6px;padding:7px 9px;border-left:2px solid var(--blue2)}
 
-/* ── TIME WINDOW (checklist badge + highlight) ── */
-.check-tw-badge{font-size:8px;color:var(--text3);font-family:'JetBrains Mono',monospace;flex-shrink:0;background:var(--bg4);padding:2px 6px;border-radius:8px;white-space:nowrap}
-.check-card.tw-active{border-color:var(--blue2);box-shadow:0 0 0 1px var(--blue2),0 0 14px rgba(88,166,255,.25);animation:tw-pulse 2s ease-in-out infinite}
-.check-card.tw-active .check-tw-badge{background:rgba(88,166,255,.18);color:#58a6ff;font-weight:700}
-.check-card.tw-active.done{animation:none;box-shadow:none;border-color:var(--green3)}
-.check-card.tw-passed .check-tw-badge{opacity:.55}
-@keyframes tw-pulse{0%,100%{box-shadow:0 0 0 1px var(--blue2),0 0 14px rgba(88,166,255,.2)}50%{box-shadow:0 0 0 1px var(--blue2),0 0 20px rgba(88,166,255,.4)}}
+/* ── TIME WINDOW (checklist) — 3 states ── */
+/* BEFORE window: normal, just quiet badge */
+.check-tw-badge{font-size:8px;color:var(--text3);font-family:'JetBrains Mono',monospace;flex-shrink:0;background:var(--bg4);padding:2px 6px;border-radius:8px;white-space:nowrap;display:flex;align-items:center;gap:3px}
+
+/* ACTIVE window: urgent red pulse — DO IT NOW */
+.check-card.tw-active{border-color:#f85149!important;animation:tw-urgent 1.4s ease-in-out infinite}
+.check-card.tw-active .check-tw-badge{background:rgba(248,81,73,.18);color:#f85149;font-weight:700;border:1px solid rgba(248,81,73,.35)}
+.check-card.tw-active .check-label{color:var(--text)!important}
+@keyframes tw-urgent{
+  0%,100%{box-shadow:0 0 0 1px #f85149,0 0 10px rgba(248,81,73,.3)}
+  50%{box-shadow:0 0 0 2px #f85149,0 0 22px rgba(248,81,73,.55),0 0 40px rgba(248,81,73,.15)}
+}
+/* the little "NOW" flame badge inside active cards */
+.tw-now-badge{display:inline-flex;align-items:center;gap:3px;background:#f85149;color:#fff;font-size:8px;font-weight:800;padding:2px 6px;border-radius:10px;letter-spacing:.5px;animation:tw-now-pop .6s ease-in-out infinite alternate;flex-shrink:0}
+@keyframes tw-now-pop{from{transform:scale(1)}to{transform:scale(1.1)}}
+
+/* PASSED window: dimmed, greyed out */
+.check-card.tw-passed{opacity:.65}
+.check-card.tw-passed .check-tw-badge{opacity:.5;text-decoration:line-through}
+
+/* done during window: calm green, no pulse */
+.check-card.tw-active.done{animation:none!important;box-shadow:none!important;border-color:var(--green3)!important;opacity:1}
+.check-card.tw-active.done .check-tw-badge{background:rgba(57,211,83,.12);color:var(--green);border-color:rgba(57,211,83,.3)}
 .sched-xweek-input{width:50px;padding:5px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:13px;text-align:center;font-family:'JetBrains Mono',monospace}
 .sched-xweek-input:focus{outline:none;border-color:var(--blue)}
 .sched-tag{font-size:8px;padding:1px 5px;border-radius:8px;font-weight:600;background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.2);white-space:nowrap;flex-shrink:0}
@@ -391,7 +503,22 @@ body.compact-mode .checklist-grid{gap:5px}
   .sidebar.sb-open{transform:translateX(0)}
   .main-content{margin-left:0;padding:16px;padding-top:60px}
   .settings-drawer{width:240px}
-  .hamburger{display:flex;left:12px}
+  /* Default (drawer closed): hamburger sits near the left edge, since
+     there's no visible logo to align with yet. Qualified with `body` (not
+     just `.hamburger`) so it can never be silently overridden by the
+     desktop base rule regardless of which one appears later in the file —
+     same cascade-order pitfall that bit the hamburger/overlay display
+     rules earlier in this project. Equal specificity + explicit body class
+     per state means source order no longer matters. */
+  body:not(.sidebar-open-mobile) .hamburger{left:12px;top:12px}
+  /* Drawer open: shift hamburger to sit beside the "Ascend" title text
+     specifically (not the longer tagline below it). Measured via canvas
+     text metrics: "Ascend" renders ~54px wide starting at x:53, so it ends
+     around x:107 — left:140 clears it with margin. Vertically, the title
+     row spans roughly top:16–33 (center ~24.5px); a 38px-tall button
+     centered on that is top=24.5-19=~6px. The tagline below is free to
+     wrap on its own line without the button interfering. */
+  body.sidebar-open-mobile .hamburger{left:140px;top:6px}
   .sb-overlay{display:block}
   .sb-overlay.active{opacity:1;pointer-events:all}
   .check-card{padding:13px 15px;min-height:48px}
@@ -400,7 +527,6 @@ body.compact-mode .checklist-grid{gap:5px}
   .mood-day-card{width:68px}
   .mood-emoji-sel{font-size:24px}
   .energy-pip{width:9px;height:9px}
-  .sb-logo{padding-top:58px}
 }
 
 /* ── MOBILE ── */
@@ -431,12 +557,16 @@ body.compact-mode .checklist-grid{gap:5px}
   .mh-stats{flex-direction:row;flex-wrap:wrap;gap:8px}
 }
 
-/* Hamburger button — always visible */
-.hamburger{display:flex;position:fixed;top:12px;left:228px;z-index:400;background:var(--bg2);border:1px solid var(--border);border-radius:7px;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3);transition:background .2s,left .3s cubic-bezier(.4,0,.2,1);flex-direction:column;gap:4px;padding:8px}
+/* Hamburger button — always visible, lives outside the sidebar (not inside
+   it) so it keeps working even when the sidebar is fully hidden/closed.
+   Position is calculated to align with the logo row, not guessed:
+   .sb-logo is 76px tall (16px padding + content), so vertical center is
+   38px; hamburger is 38px tall, so top = (76-38)/2 = 19px centers it. */
+.hamburger{display:flex;position:fixed;top:19px;left:236px;z-index:400;background:var(--bg2);border:1px solid var(--border);border-radius:7px;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3);transition:background .2s,left .3s cubic-bezier(.4,0,.2,1);flex-direction:column;gap:4px;padding:8px}
 .hamburger:hover{background:var(--bg3)}
 .hamburger span{display:block;width:18px;height:2px;background:currentColor;border-radius:1px;transition:all .2s}
 /* When sidebar is hidden, move hamburger back to left edge */
-body.sidebar-hidden .hamburger{left:12px}
+body.sidebar-hidden .hamburger{left:12px;top:12px}
 /* When sidebar is hidden, offset main content */
 body.sidebar-hidden .sidebar{transform:translateX(-100%)}
 body.sidebar-hidden .main-content{margin-left:0}
@@ -576,6 +706,9 @@ function toggleSidebar(){
   if(isMobile){
     const open=sb.classList.toggle('sb-open');
     ov.classList.toggle('active',open);
+    // Mirror the desktop pattern: a body class lets CSS reposition the
+    // hamburger to align with the logo row while the drawer is open.
+    document.body.classList.toggle('sidebar-open-mobile',open);
   } else {
     // Desktop: toggle hidden state — CSS handles sidebar transform + hamburger position
     document.body.classList.toggle('sidebar-hidden');
@@ -588,6 +721,7 @@ function toggleSidebar(){
 function closeSidebar(){
   const sb=document.querySelector('.sidebar');
   const ov=document.getElementById('sb-overlay');
+  document.body.classList.remove('sidebar-open-mobile');
   if(sb)sb.classList.remove('sb-open');
   if(ov)ov.classList.remove('active');
 }
@@ -1087,11 +1221,11 @@ function buildSidebar(){
 
   return h('div',{className:'sidebar'},
     h('div',{className:'sb-logo'},
-      h('div',{className:'sb-logo-icon'},'📔'),
-      h('div',null,
-        h('div',{className:'sb-logo-text'},'Habit Tracker'),
-        h('div',{className:'sb-logo-sub'},'by Alok')
-      )
+      h('div',{className:'sb-logo-toprow'},
+        h('div',{className:'sb-logo-icon'},'📔'),
+        h('div',{className:'sb-logo-text'},'Ascend')
+      ),
+      h('div',{className:'sb-logo-sub'},'Build the life you\'re proud of.')
     ),
     h('div',{className:'sb-section'},
       h('div',{className:'sb-label'},'📅 Period'),
@@ -1196,12 +1330,19 @@ function buildChecklist(){
       const twPassedQuiet=isRealToday&&hasTimeWindow(hb)&&!done&&isPastTimeWindow(hb);
       const cardClasses='check-card'+(done?' done':'')+((!scheduled)?' habit-skipped':'')+(twActive?' tw-active':'')+(twPassedQuiet?' tw-passed':'');
       const twBadge=scheduled&&hasTimeWindow(hb)
-        ? h('span',{className:'check-tw-badge'},(twActive?'🔵 ':'🕓 ')+timeWindowLabel(hb))
+        ? (twActive
+            ? h('span',{className:'check-tw-badge'},'⏰ '+timeWindowLabel(hb))
+            : twPassedQuiet
+              ? h('span',{className:'check-tw-badge'},'✓ '+timeWindowLabel(hb))
+              : h('span',{className:'check-tw-badge'},'🕓 '+timeWindowLabel(hb))
+          )
         : null;
+      const nowBadge=twActive&&!done?h('span',{className:'tw-now-badge'},'🔴 NOW'):null;
       const card=h('div',{className:cardClasses},
         h('div',{className:'check-icon'},done?'✓':(!scheduled?'–':'')),
         h('span',{className:'check-label'},hb.emoji+' '+hb.name),
         twBadge,
+        nowBadge,
         !scheduled
           ? h('span',{style:{fontSize:'8px',color:'var(--text3)',flexShrink:'0'}},scheduleLabel(hb))
           : (st&&st.streak>1?h('span',{className:'check-streak'},'🔥'+st.streak):null)
@@ -2202,30 +2343,61 @@ function buildModal(){
     );
   }
 
-  // Optional time window — purely visual nudge, never enforced
+  // Optional time window — clean pill toggle, no checkbox
   const tw=state.formTimeWindow;
-  const twToggle=h('label',{className:'tw-toggle-row'},
-    (()=>{ const cb=document.createElement('input'); cb.type='checkbox'; if(tw)cb.checked=true;
-      cb.addEventListener('change',e=>{
-        state.formTimeWindow=e.target.checked?{start:tw?.start||'06:00',end:tw?.end||'08:00'}:null;
-        render();
-      });
-      return cb; })(),
-    h('span',null,'Remind me with a specific time window')
-  );
+
+  const twOff=h('div',{className:'tw-toggle-opt'+(tw?'':' active')},'⏱ No window');
+  const twOn=h('div',{className:'tw-toggle-opt'+(tw?' active':'')},'🕐 Set window');
+  twOff.addEventListener('click',()=>{state.formTimeWindow=null;render();});
+  twOn.addEventListener('click',()=>{if(!tw){state.formTimeWindow={start:'06:00',end:'08:00'};render();}});
+  const twToggle=h('div',{className:'tw-toggle-row'},twOff,twOn);
+
   let twInputs=null;
   if(tw){
     const startInp=document.createElement('input');
-    startInp.type='time'; startInp.className='tw-time-input'; startInp.value=tw.start;
+    startInp.type='time'; startInp.className='tw-time-input'; startInp.value=tw.start||'06:00';
     startInp.addEventListener('change',e=>{state.formTimeWindow={...tw,start:e.target.value};render()});
+
     const endInp=document.createElement('input');
-    endInp.type='time'; endInp.className='tw-time-input'; endInp.value=tw.end;
+    endInp.type='time'; endInp.className='tw-time-input'; endInp.value=tw.end||'08:00';
     endInp.addEventListener('change',e=>{state.formTimeWindow={...tw,end:e.target.value};render()});
-    twInputs=h('div',{className:'tw-time-row'},
-      startInp,h('span',{style:{color:'var(--text3)',fontSize:'11px'}},'to'),endInp
+
+    // Compute timeline fill percentages
+    function toMins(hhmm){const[h,m]=(hhmm||'00:00').split(':').map(Number);return h*60+m}
+    const sMin=toMins(tw.start||'06:00');
+    const eMin=toMins(tw.end||'08:00');
+    const totalDay=24*60;
+    const leftPct=(sMin/totalDay*100).toFixed(1)+'%';
+    const widthPct=(Math.max(0,(eMin-sMin))/totalDay*100).toFixed(1)+'%';
+    const dur=Math.max(0,eMin-sMin);
+    const durLabel=dur>0?`${Math.floor(dur/60)}h${dur%60?` ${dur%60}m`:''}  window`:'set end after start';
+
+    twInputs=h('div',{className:'tw-picker'},
+      h('div',{className:'tw-picker-row'},
+        h('span',{className:'tw-picker-label'},'Start'),
+        startInp
+      ),
+      h('div',{className:'tw-picker-row'},
+        h('span',{className:'tw-picker-label'},'End'),
+        endInp
+      ),
+      // visual timeline
+      h('div',null,
+        h('div',{className:'tw-timeline'},
+          h('div',{className:'tw-timeline-fill',style:{left:leftPct,width:widthPct}})
+        ),
+        h('div',{className:'tw-timeline-labels'},
+          h('span',null,'12 AM'),
+          h('span',null,'6 AM'),
+          h('span',null,'12 PM'),
+          h('span',null,'6 PM'),
+          h('span',null,'12 AM')
+        ),
+        h('div',{style:{fontSize:'10px',color:'var(--blue)',fontWeight:'600',marginTop:'5px',fontFamily:'JetBrains Mono,monospace',textAlign:'center'}},durLabel)
+      )
     );
   }
-  const twHint=tw?h('div',{className:'tw-hint'},"This is just a nudge — you can still check it off any time, early or late. It won't affect your streak or score."):null;
+  const twHint=tw?h('div',{className:'tw-hint'},'⏰  During this window your habit card will pulse red — a clear nudge to get it done. You can still check it off any time though, no stress.'):null;
 
   const modal=h('div',{className:'modal'},
     h('h3',null,isEdit?'✏️ Edit Habit':'📝 New Habit'),
@@ -2377,12 +2549,19 @@ function buildSettingsDrawer(){
       )
     ),
 
+    // HOW TO USE
+    h('div',{className:'settings-section'},
+      h('div',{className:'settings-section-label'},'Guide'),
+      h('button',{className:'drawer-reset-btn',style:{background:'linear-gradient(135deg,rgba(88,166,255,.12),rgba(188,140,255,.08))',borderColor:'rgba(88,166,255,.25)',color:'var(--blue)',fontWeight:'600'},onClick:()=>{closeSettings();openHowTo()}},'📖  How to use Ascend')
+    ),
+
     // ABOUT
     h('div',{className:'settings-section',style:{borderBottom:'none'}},
       h('div',{className:'settings-section-label'},'About'),
-      h('div',{style:{fontSize:'10px',color:'var(--text3)',lineHeight:'1.7'}},
-        '📔 Habit Tracker v2',h('br',null),
-        'by ',h('span',{style:{color:'var(--text2)',fontWeight:'600'}},'Alok'),h('br',null),
+      h('div',{style:{fontSize:'10px',color:'var(--text3)',lineHeight:'1.9'}},
+        h('span',{style:{fontSize:'12px',fontWeight:'700',color:'var(--text)',letterSpacing:'-.2px'}},'📔 Ascend'),h('br',null),
+        h('em',{style:{color:'var(--text3)',fontSize:'10px'}},'Build the life you\'re proud of.'),h('br',null),
+        'Made with ❤️ by ',h('span',{style:{color:'var(--text2)',fontWeight:'600'}},'Alok Yadav'),h('br',null),
         h('span',{style:{fontFamily:'JetBrains Mono,monospace',fontSize:'9px'}},'Data stored locally in browser')
       )
     )
@@ -2391,6 +2570,140 @@ function buildSettingsDrawer(){
   // Re-open state
   if(load('ht2_drawer_open',false)) drawer.classList.add('open');
   return drawer;
+}
+
+// ── HOW TO USE — Ascend branded guide ──────────────────────────────────────
+function openHowTo(){
+  const existing=document.getElementById('howto-overlay');
+  if(existing)existing.remove();
+  document.body.appendChild(buildHowTo());
+}
+function closeHowTo(){
+  const el=document.getElementById('howto-overlay');
+  if(el)el.remove();
+}
+
+function buildHowTo(){
+  const overlay=document.createElement('div');
+  overlay.className='howto-overlay';
+  overlay.id='howto-overlay';
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeHowTo()});
+
+  function section(colorClass,emoji,title,...paras){
+    const sec=document.createElement('div');
+    sec.className=`howto-section ${colorClass}`;
+    const ttl=document.createElement('div');
+    ttl.className='howto-section-title';
+    ttl.innerHTML=`<span>${emoji}</span>${title}`;
+    sec.appendChild(ttl);
+    paras.forEach(p=>{
+      if(typeof p==='string'){
+        const el=document.createElement('p');el.innerHTML=p;sec.appendChild(el);
+      } else {sec.appendChild(p);}
+    });
+    return sec;
+  }
+  function tip(text){const d=document.createElement('div');d.className='howto-tip';d.innerHTML=text;return d;}
+  function tags(...items){
+    const w=document.createElement('div');w.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin-top:6px';
+    items.forEach(([label,cls])=>{const t=document.createElement('span');t.className=`howto-tag${cls?' '+cls:''}`;t.textContent=label;w.appendChild(t);});
+    return w;
+  }
+
+  const modal=document.createElement('div');
+  modal.className='howto-modal';
+
+  // HEADER
+  const header=document.createElement('div');
+  header.className='howto-header';
+  header.innerHTML=`
+    <div class="howto-brand">
+      <div class="howto-brand-icon">📔</div>
+      <div>
+        <div class="howto-brand-name">Ascend</div>
+        <div class="howto-brand-sub">Build the life you're proud of</div>
+      </div>
+    </div>
+    <button class="howto-close" onclick="closeHowTo()">✕</button>
+  `;
+
+  // BODY
+  const body=document.createElement('div');
+  body.className='howto-body';
+
+  body.appendChild(section('s-green','🌱','Welcome to Ascend',
+    `Hey there! Ascend is your personal habit tracker — built by <strong style="color:var(--text)">Alok Yadav</strong> to help you build the life you're actually proud of. No fluff, no subscriptions, no nonsense. Just you, your habits, and a clean streak to protect.`,
+    `Everything you do here stays <strong style="color:var(--text)">right on your device</strong> — nothing leaves your browser. It's completely yours.`
+  ));
+
+  body.appendChild(section('s-blue','✅','Adding Your First Habit',
+    `Hit the <strong style="color:var(--text)">+ Add Habit</strong> button in the left sidebar. Give it a name, pick an emoji that feels right, choose a colour, and you're done.`,
+    `The <strong style="color:var(--text)">Category</strong> just helps you organise — Health, Focus, Mindset, etc. Doesn't affect anything, just keeps things tidy.`,
+    tip('💡 Keep habit names short and action-y — "Run 20 mins" beats "Try to be more active this week".')
+  ));
+
+  body.appendChild(section('s-orange','📅','Schedules — You\'re in Control',
+    `Not every habit is a daily thing. Ascend lets you be real about when you actually do stuff:`,
+    tags(
+      ['Every Day','green'],['Specific Days (Mon, Wed, Fri…)',''],
+      ['Alternating (odd/even days)','orange'],['X times a week','orange']
+    ),
+    `Pick <strong style="color:var(--text)">Specific Days</strong> if you gym on Monday, Wednesday, Friday. Pick <strong style="color:var(--text)">X/Week</strong> if you just want to read 4 times a week — Ascend figures out if you hit the target.`,
+    tip('💡 Habits only count on the days they\'re scheduled. So a 3-day-a-week habit gives you 3 chances a week, not 7.')
+  ));
+
+  body.appendChild(section('s-red','⏰','Time Windows — Do It Now',
+    `When you set a <strong style="color:var(--text)">time window</strong> on a habit (like 7 AM – 8 AM for a morning run), Ascend watches the clock for you.`,
+    `<strong style="color:#f85149">During the window</strong> — your habit card turns red and pulses with a 🔴 NOW badge. That's your cue. Go do it. Right now. The card literally won't let you forget.`,
+    `<strong style="color:var(--text2)">Before the window</strong> — the card looks completely normal. No pressure yet.`,
+    `<strong style="color:var(--text3)">After the window</strong> — the card dims down quietly. You can still check it off — there's no penalty — but you'll know you missed the window.`,
+    tip('💡 Time windows are just a nudge, never a punishment. Your streak is always safe.')
+  ));
+
+  body.appendChild(section('s-purple','🔥','Streaks — Your Superpower',
+    `Every time you check a habit on scheduled days <strong style="color:var(--text)">back to back</strong>, your streak grows. A 🔥 badge appears on the habit card showing how many days in a row you've nailed it.`,
+    `Streaks reset if you miss a scheduled day — so protect them! That little fire icon is weirdly motivating.`,
+    tip('💡 Skipped days (days where the habit isn\'t scheduled) don\'t break your streak. Only scheduled days you miss will.')
+  ));
+
+  body.appendChild(section('s-green','🗓','The Heatmap — Your Year at a Glance',
+    `The GitHub-style heatmap shows every single day of the year coloured by how many habits you completed. Darker = better.`,
+    `Hover over any square to see the exact date and how many habits you got done that day. Green patches = good weeks. Aim to make it look like a jungle, not a desert.`
+  ));
+
+  body.appendChild(section('s-orange','😊','Mood & Energy — Check In Daily',
+    `Every day has a little card in the <strong style="color:var(--text)">Mood & Motivation</strong> section. Tap the emoji to log how you're feeling (😞 to 🤩), tap the Energy bars to rate your energy (1–5), and hit 📝 to leave a quick note.`,
+    `The sparkline graph at the top shows how your mood and energy have trended through the month — useful for spotting patterns.`,
+    tip('💡 Logging mood takes 3 seconds. Seeing a whole month of data back is priceless.')
+  ));
+
+  body.appendChild(section('s-purple','🕸️','Radar & Analysis — Know Your Numbers',
+    `The <strong style="color:var(--text)">Radar Chart</strong> shows all your habits as a spider web — the further out each point is, the better your monthly completion on that habit.`,
+    `The <strong style="color:var(--text)">Monthly Analysis</strong> table ranks every habit by completion %, so you can see exactly which ones you're crushing and which ones need some love.`
+  ));
+
+  body.appendChild(section('s-gold','🏁','Leaderboard — Friendly Competition',
+    `Want to compete with friends? Set up a Leaderboard in Settings. Pick a name, an avatar emoji, and share a <strong style="color:var(--text)">group code</strong> with your friends.`,
+    `Only your <strong style="color:var(--text)">consistency score</strong> syncs — your actual habits and check-ins never leave your device. Your friends just see how consistent you've been, not what you're doing.`,
+    tip('💡 Group codes are case-sensitive. Make them something unique so random people don\'t accidentally join.')
+  ));
+
+  body.appendChild(section('s-blue','💾','Your Data is Safe',
+    `Everything in Ascend — your habits, check-ins, mood logs, notes — is stored <strong style="color:var(--text)">locally in your browser</strong>. It never goes to a server.`,
+    `Use <strong style="color:var(--text)">Export data as JSON</strong> in Settings regularly to back things up. If you clear your browser data without a backup, the data is gone. Export often!`,
+    tip('💡 Import works the same way — just load your backup JSON and everything comes back exactly as it was.')
+  ));
+
+  // FOOTER
+  const footer=document.createElement('div');
+  footer.className='howto-footer';
+  footer.innerHTML=`Made with ❤️ by <strong>Alok Yadav</strong><br><em style="color:var(--text3)">"Build the life you're proud of"</em>`;
+
+  body.appendChild(footer);
+  modal.appendChild(header);
+  modal.appendChild(body);
+  overlay.appendChild(modal);
+  return overlay;
 }
 
 function exportData(){
@@ -2585,6 +2898,17 @@ function initDraggable(){
   }
 })();
 render();
+
+// First-ever visit: auto-open the "How to use Ascend" guide once, after a
+// short delay so it doesn't pop up before the page has visually settled.
+// The flag is permanent — it never auto-shows again after the first time,
+// but the manual "📖 How to use Ascend" button in Settings always works.
+if(!load('ht2_seen_howto',false)){
+  setTimeout(()=>{
+    save('ht2_seen_howto',true);
+    openHowTo();
+  },900);
+}
 
 // Re-render once a minute so time-window highlights (🔵 "do this now") turn
 // on/off on their own as the clock crosses a window boundary, without
