@@ -377,7 +377,32 @@ body.compact-mode .checklist-grid{gap:5px}
   .howto-section{padding:13px 14px}
 }
 
-/* Mood sparkline */
+/* ── PWA INSTALL PROMPT ── */
+#pwa-prompt{position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:0 16px 16px;pointer-events:none;display:flex;justify-content:center}
+#pwa-prompt.show{pointer-events:all}
+.pwa-card{background:var(--bg2);border:1px solid var(--border2);border-radius:18px 18px 14px 14px;padding:18px 20px 16px;width:100%;max-width:420px;box-shadow:0 -4px 40px rgba(0,0,0,.55),0 8px 32px rgba(0,0,0,.4);transform:translateY(120%);transition:transform .4s cubic-bezier(.34,1.4,.64,1);display:flex;flex-direction:column;gap:12px}
+#pwa-prompt.show .pwa-card{transform:translateY(0)}
+.pwa-top{display:flex;align-items:center;gap:12px}
+.pwa-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#1f6feb,#9b5de5);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 4px 12px rgba(31,111,235,.4)}
+.pwa-text{flex:1}
+.pwa-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.2px}
+.pwa-sub{font-size:11px;color:var(--text2);margin-top:2px;line-height:1.4}
+.pwa-dismiss{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px;line-height:1;flex-shrink:0;border-radius:6px;transition:all .15s}
+.pwa-dismiss:hover{background:var(--bg3);color:var(--text)}
+.pwa-btns{display:flex;gap:8px}
+.pwa-btn-install{flex:1;background:linear-gradient(135deg,#1f6feb,#9b5de5);color:#fff;border:none;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s;letter-spacing:-.1px}
+.pwa-btn-install:hover{opacity:.88}
+.pwa-btn-later{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:10px;padding:11px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.pwa-btn-later:hover{background:var(--bg4);color:var(--text)}
+/* iOS tooltip style */
+.pwa-ios-arrow{text-align:center;font-size:11px;color:var(--text3);padding:2px 0;display:flex;align-items:center;justify-content:center;gap:6px}
+/* update banner */
+#pwa-update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(90deg,#1f6feb,#9b5de5);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;transform:translateY(-100%);transition:transform .3s ease;box-shadow:0 2px 12px rgba(31,111,235,.4)}
+#pwa-update-bar.show{transform:translateY(0)}
+#pwa-update-bar button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
+#pwa-update-bar button:hover{background:rgba(255,255,255,.35)}
+#pwa-update-dismiss{background:none!important;border:none!important;font-size:16px;padding:2px 6px!important;opacity:.7}
+#pwa-update-dismiss:hover{opacity:1;background:none!important}
 .mood-sparkline-wrap{margin-bottom:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)}
 .mood-sparkline-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:6px;font-weight:500}
 .mood-sparkline-svg{width:100%;height:44px;display:block}
@@ -2552,7 +2577,8 @@ function buildSettingsDrawer(){
     // HOW TO USE
     h('div',{className:'settings-section'},
       h('div',{className:'settings-section-label'},'Guide'),
-      h('button',{className:'drawer-reset-btn',style:{background:'linear-gradient(135deg,rgba(88,166,255,.12),rgba(188,140,255,.08))',borderColor:'rgba(88,166,255,.25)',color:'var(--blue)',fontWeight:'600'},onClick:()=>{closeSettings();openHowTo()}},'📖  How to use Ascend')
+      h('button',{className:'drawer-reset-btn',style:{background:'linear-gradient(135deg,rgba(88,166,255,.12),rgba(188,140,255,.08))',borderColor:'rgba(88,166,255,.25)',color:'var(--blue)',fontWeight:'600'},onClick:()=>{closeSettings();openHowTo()}},'📖  How to use Ascend'),
+      h('button',{id:'pwa-settings-btn',className:'drawer-reset-btn',style:{background:'linear-gradient(135deg,rgba(57,211,83,.08),rgba(31,111,235,.08))',borderColor:'rgba(57,211,83,.2)',color:'var(--green)',fontWeight:'600',marginTop:'6px'},onClick:()=>{closeSettings();pwaInstallFromSettings()}},'📲  Install Ascend as app')
     ),
 
     // ABOUT
@@ -2931,6 +2957,194 @@ if(window.__lb && window.__lb.configured && lbIsSetUp()){
   lbStartListening();
 }
 
+</script>
+
+<!-- PWA manifest injected inline as data URI so no extra file needed -->
+<script>
+(function(){
+  // ── MANIFEST (inline, no extra file needed) ───────────────────
+  const manifest={
+    name:'Ascend',
+    short_name:'Ascend',
+    description:"Build the life you're proud of.",
+    start_url:'/Alok-s-habit-tracker-/',
+    scope:'/Alok-s-habit-tracker-/',
+    display:'standalone',
+    orientation:'portrait-primary',
+    background_color:'#0d1117',
+    theme_color:'#1f6feb',
+    icons:[
+      {src:'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#0d1117"/><text y="340" x="60" font-size="380">📔</text></svg>`),sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}
+    ]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('link');
+  link.rel='manifest';link.href=url;
+  document.head.appendChild(link);
+
+  // iOS meta tags
+  const metas=[
+    ['apple-mobile-web-app-capable','yes'],
+    ['apple-mobile-web-app-status-bar-style','black-translucent'],
+    ['apple-mobile-web-app-title','Ascend'],
+    ['theme-color','#1f6feb'],
+  ];
+  metas.forEach(([n,c])=>{const m=document.createElement('meta');m.name=n;m.content=c;document.head.appendChild(m);});
+})();
+</script>
+
+<!-- PWA install prompt UI -->
+<div id="pwa-update-bar">
+  ✨ Ascend just got better!
+  <button onclick="pwaDoUpdate()">Refresh now</button>
+  <button id="pwa-update-dismiss" onclick="document.getElementById('pwa-update-bar').classList.remove('show')">✕</button>
+</div>
+
+<div id="pwa-prompt">
+  <div class="pwa-card" id="pwa-card">
+    <div class="pwa-top">
+      <div class="pwa-icon">📔</div>
+      <div class="pwa-text">
+        <div class="pwa-title">Install Ascend</div>
+        <div class="pwa-sub" id="pwa-sub">Add to your home screen for the full app experience — works offline too.</div>
+      </div>
+      <button class="pwa-dismiss" onclick="pwaDismiss()" title="Dismiss">✕</button>
+    </div>
+    <div class="pwa-btns" id="pwa-btns">
+      <button class="pwa-btn-install" id="pwa-install-btn" onclick="pwaDoInstall()">📲 Install App</button>
+      <button class="pwa-btn-later" onclick="pwaDismiss()">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── PWA ENGINE ────────────────────────────────────────────────────────────────
+const PWA_KEY='ascend_pwa_dismissed';
+const PWA_INSTALLED_KEY='ascend_pwa_installed';
+const isHosted=location.protocol==='https:'&&location.hostname==='alok-who-builds.github.io';
+let _deferredPrompt=null;
+let _swReg=null;
+
+// Detect device type
+function isIOS(){return/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream}
+function isAndroid(){return/android/i.test(navigator.userAgent)}
+function isMobile(){return isIOS()||isAndroid()||window.innerWidth<=768}
+function isInStandaloneMode(){return window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone===true}
+
+// ── SERVICE WORKER ────────────────────────────────────────────────────────────
+
+function registerSW(){
+  if(!('serviceWorker' in navigator))return;
+  navigator.serviceWorker.register('/Alok-s-habit-tracker-/sw.js',{scope:'/Alok-s-habit-tracker-/'})
+    .then(reg=>{
+      _swReg=reg;
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        if(!nw)return;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){
+            document.getElementById('pwa-update-bar').classList.add('show');
+          }
+        });
+      });
+    })
+    .catch(err=>console.warn('SW registration failed:',err));
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    window.location.reload();
+  });
+}
+
+function pwaDoUpdate(){
+  if(_swReg&&_swReg.waiting){
+    _swReg.waiting.postMessage('skipWaiting');
+  } else {
+    window.location.reload();
+  }
+}
+
+// ── INSTALL PROMPT LOGIC ──────────────────────────────────────────────────────
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  _deferredPrompt=e;
+  if(!localStorage.getItem(PWA_KEY)&&!localStorage.getItem(PWA_INSTALLED_KEY)&&isMobile()&&isHosted){
+    setTimeout(pwaShowPrompt, 30000);
+  }
+});
+
+window.addEventListener('appinstalled',()=>{
+  localStorage.setItem(PWA_INSTALLED_KEY,'1');
+  pwaDismiss();
+  _deferredPrompt=null;
+});
+
+function pwaShowPrompt(){
+  if(isInStandaloneMode())return; // already installed
+  if(localStorage.getItem(PWA_KEY))return; // dismissed
+  if(localStorage.getItem(PWA_INSTALLED_KEY))return; // installed
+  const prompt=document.getElementById('pwa-prompt');
+  if(!prompt)return;
+
+  if(isIOS()){
+    // iOS: can't trigger install programmatically, show instructions
+    document.getElementById('pwa-sub').textContent='Tap the Share button below, then "Add to Home Screen" to install Ascend.';
+    document.getElementById('pwa-btns').innerHTML=`
+      <div class="pwa-ios-arrow" style="flex:1;background:var(--bg3);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.6">
+        📱 In Safari: tap <strong style="color:var(--text)">Share ↑</strong> → <strong style="color:var(--text)">Add to Home Screen</strong>
+      </div>
+    `;
+  }
+  prompt.classList.add('show');
+}
+
+async function pwaDoInstall(){
+  if(isIOS()){pwaDismiss();return;}
+  if(!_deferredPrompt){
+    // Fallback if prompt not available
+    pwaDismiss();
+    return;
+  }
+  _deferredPrompt.prompt();
+  const{outcome}=await _deferredPrompt.userChoice;
+  if(outcome==='accepted'){
+    localStorage.setItem(PWA_INSTALLED_KEY,'1');
+  }
+  _deferredPrompt=null;
+  pwaDismiss();
+}
+
+function pwaDismiss(){
+  const prompt=document.getElementById('pwa-prompt');
+  if(prompt)prompt.classList.remove('show');
+  localStorage.setItem(PWA_KEY,'1');
+}
+
+// Settings drawer install button
+function pwaInstallFromSettings(){
+  if(isInStandaloneMode()){
+    alert('Ascend is already installed on your device! 🎉');
+    return;
+  }
+  if(isIOS()){
+    // Show the prompt for iOS instructions
+    localStorage.removeItem(PWA_KEY);
+    pwaShowPrompt();
+    return;
+  }
+  if(_deferredPrompt){
+    // Android — trigger native prompt immediately
+    pwaDoInstall();
+    return;
+  }
+  // Desktop or prompt not available
+  alert('To install Ascend:\n\nChrome: click the ⊕ icon in the address bar\nEdge: click the ⊕ icon in the address bar\n\nOr open on your Android phone for the easiest install!');
+}
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+// Only register SW when actually hosted on GitHub Pages — never on local file://
+if(isHosted && !isInStandaloneMode()){
+  registerSW();
+}
 </script>
 </body>
 </html>
