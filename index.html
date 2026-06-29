@@ -1419,67 +1419,152 @@ function buildMonthHeader(){
 }
 
 // ── CHECKLIST (today's habits) ──────────────────────────────────────────────
+// Finds the next date (today + 1 .. today + 7) a habit is scheduled.
+// Pure read of existing isScheduled() — does not change scheduling logic.
+// Returns null if not scheduled again within the next 7 days.
+function nextScheduledOccurrence(hb,year,month,fromDay){
+  for(let offset=1;offset<=7;offset++){
+    const d=new Date(year,month,fromDay+offset);
+    if(isScheduled(hb,d.getFullYear(),d.getMonth(),d.getDate())){
+      return {date:d,offset};
+    }
+  }
+  return null;
+}
+function nextOccurrenceLabel(occ){
+  if(!occ)return 'No date set';
+  if(occ.offset===1)return 'Tomorrow';
+  if(occ.offset<7)return WEEK_DAYS_FULL[occ.date.getDay()];
+  return MONTHS_SHORT[occ.date.getMonth()]+' '+occ.date.getDate();
+}
+
 function buildChecklist(){
   const {year,month,habits,checks}=state;
   const today=new Date();
   const isCur=today.getFullYear()===year&&today.getMonth()===month;
   const targetDay=isCur?today.getDate():daysInMonth(year,month);
   const collapsed=state.collapsedSections['checklist'];
+  const inactiveCollapsed=state.collapsedSections['checklist-inactive']!==false; // collapsed by default
 
   const analysis=habits.map(h=>({...h,...habitStats(h)}));
 
-  const grid=h('div',{className:'checklist-grid'},
-    ...habits.map(hb=>{
-      const k=ck(hb.id,targetDay);
-      const done=!!checks[k];
-      const scheduled=isScheduled(hb,year,month,targetDay);
-      const st=analysis.find(a=>a.id===hb.id);
-      // The live "do this now" highlight only ever applies to today's real
-      // date — never to a past/future day you're just browsing.
-      const isRealToday=isCur&&targetDay===today.getDate();
-      const twActive=isRealToday&&hasTimeWindow(hb)&&isWithinTimeWindow(hb);
-      const twPassedQuiet=isRealToday&&hasTimeWindow(hb)&&!done&&isPastTimeWindow(hb);
-      const cardClasses='check-card'+(done?' done':'')+((!scheduled)?' habit-skipped':'')+(twActive?' tw-active':'')+(twPassedQuiet?' tw-passed':'');
-      const twBadge=scheduled&&hasTimeWindow(hb)
-        ? (twActive
-            ? h('span',{className:'check-tw-badge'},'⏰ '+timeWindowLabel(hb))
-            : twPassedQuiet
-              ? h('span',{className:'check-tw-badge'},'✓ '+timeWindowLabel(hb))
-              : h('span',{className:'check-tw-badge'},'🕓 '+timeWindowLabel(hb))
-          )
-        : null;
-      const nowBadge=twActive&&!done?h('span',{className:'tw-now-badge'},'🔴 NOW'):null;
-      const card=h('div',{className:cardClasses},
-        h('div',{className:'check-icon'},done?'✓':(!scheduled?'–':'')),
-        h('span',{className:'check-label'},hb.emoji+' '+hb.name),
-        twBadge,
-        nowBadge,
-        !scheduled
-          ? h('span',{style:{fontSize:'8px',color:'var(--text3)',flexShrink:'0'}},scheduleLabel(hb))
-          : (st&&st.streak>1?h('span',{className:'check-streak'},'🔥'+st.streak):null)
-      );
-      if(scheduled) card.addEventListener('click',()=>toggleCheck(hb.id,targetDay));
-      // Pop animation: fire only on the specific habit just checked
-      if(done && hb.id===_justCheckedId){
-        const icon=card.querySelector('.check-icon');
-        if(icon){icon.style.animation='checkPop .25s ease';setTimeout(()=>{icon.style.animation=''},260);}
-        _justCheckedId=null;
-      }
-      return card;
-    })
+  // The live "do this now" highlight only ever applies to today's real
+  // date — never to a past/future day you're just browsing.
+  const isRealToday=isCur&&targetDay===today.getDate();
+
+  // Builds one habit card. Identical visuals/behavior to before — only
+  // extracted into a helper so it can be reused across the new groups.
+  function buildCard(hb,scheduled){
+    const k=ck(hb.id,targetDay);
+    const done=!!checks[k];
+    const st=analysis.find(a=>a.id===hb.id);
+    const twActive=isRealToday&&scheduled&&hasTimeWindow(hb)&&isWithinTimeWindow(hb);
+    const twPassedQuiet=isRealToday&&scheduled&&hasTimeWindow(hb)&&!done&&isPastTimeWindow(hb);
+    const cardClasses='check-card'+(done?' done':'')+((!scheduled)?' habit-skipped':'')+(twActive?' tw-active':'')+(twPassedQuiet?' tw-passed':'');
+    const twBadge=scheduled&&hasTimeWindow(hb)
+      ? (twActive
+          ? h('span',{className:'check-tw-badge'},'⏰ '+timeWindowLabel(hb))
+          : twPassedQuiet
+            ? h('span',{className:'check-tw-badge'},'✓ '+timeWindowLabel(hb))
+            : h('span',{className:'check-tw-badge'},'🕓 '+timeWindowLabel(hb))
+        )
+      : null;
+    const nowBadge=twActive&&!done?h('span',{className:'tw-now-badge'},'🔴 NOW'):null;
+    const upcomingBadge=!scheduled
+      ? h('span',{style:{fontSize:'8px',color:'var(--text3)',flexShrink:'0'}},nextOccurrenceLabel(nextScheduledOccurrence(hb,year,month,targetDay)))
+      : null;
+    const card=h('div',{className:cardClasses},
+      h('div',{className:'check-icon'},done?'✓':(!scheduled?'–':'')),
+      h('span',{className:'check-label'},hb.emoji+' '+hb.name),
+      twBadge,
+      nowBadge,
+      upcomingBadge||(st&&st.streak>1?h('span',{className:'check-streak'},'🔥'+st.streak):null)
+    );
+    if(scheduled) card.addEventListener('click',()=>toggleCheck(hb.id,targetDay));
+    // Pop animation: fire only on the specific habit just checked
+    if(done && hb.id===_justCheckedId){
+      const icon=card.querySelector('.check-icon');
+      if(icon){icon.style.animation='checkPop .25s ease';setTimeout(()=>{icon.style.animation=''},260);}
+      _justCheckedId=null;
+    }
+    return card;
+  }
+
+  // ── Group habits: Today / Upcoming (next 7 days) / Inactive (rest) ──────
+  const todayHabits=[],upcomingHabits=[],inactiveHabits=[];
+  habits.forEach(hb=>{
+    if(isScheduled(hb,year,month,targetDay)){
+      todayHabits.push(hb);
+      return;
+    }
+    const occ=nextScheduledOccurrence(hb,year,month,targetDay);
+    if(occ) upcomingHabits.push({hb,occ});
+    else inactiveHabits.push(hb);
+  });
+
+  // ── Sort Today's Habits: in-window > upcoming-window-today > incomplete > done ──
+  function todayPriority(hb){
+    const k=ck(hb.id,targetDay);
+    const done=!!checks[k];
+    const inWindow=isRealToday&&hasTimeWindow(hb)&&isWithinTimeWindow(hb);
+    const upcomingWindowToday=isRealToday&&hasTimeWindow(hb)&&!inWindow&&!isPastTimeWindow(hb)&&!done;
+    if(inWindow)return 0;
+    if(upcomingWindowToday)return 1;
+    if(!done)return 2;
+    return 3; // completed
+  }
+  const sortedToday=[...todayHabits].sort((a,b)=>todayPriority(a)-todayPriority(b));
+
+  // Upcoming sorted by nearest occurrence first
+  const sortedUpcoming=[...upcomingHabits].sort((a,b)=>a.occ.offset-b.occ.offset);
+
+  const todayGrid=h('div',{className:'checklist-grid'},
+    ...sortedToday.map(hb=>buildCard(hb,true))
+  );
+  const upcomingGrid=upcomingHabits.length?h('div',{className:'checklist-grid',style:{marginTop:'10px'}},
+    ...sortedUpcoming.map(({hb})=>buildCard(hb,false))
+  ):null;
+  const inactiveGrid=inactiveHabits.length?h('div',{className:'checklist-grid',style:{marginTop:'10px'}},
+    ...inactiveHabits.map(hb=>buildCard(hb,false))
+  ):null;
+
+  const doneToday=todayHabits.filter(hb=>!!checks[ck(hb.id,targetDay)]).length;
+  const toggleBtn=h('button',{className:'section-toggle',onClick:()=>toggleSection('checklist')},collapsed?'▶ Show':'▼ Hide');
+
+  const subheading=(icon,label,count)=>h('div',{style:{display:'flex',alignItems:'center',gap:'6px',marginTop:'14px',marginBottom:'6px',fontSize:'10px',fontWeight:'700',color:'var(--text3)',textTransform:'uppercase',letterSpacing:'.4px'}},
+    h('span',null,icon),label,
+    count!=null?h('span',{style:{fontWeight:'600',color:'var(--text3)'}},`(${count})`):null
   );
 
-  const doneToday=habits.filter(hb=>!!checks[ck(hb.id,targetDay)]).length;
-  const toggleBtn=h('button',{className:'section-toggle',onClick:()=>toggleSection('checklist')},collapsed?'▶ Show':'▼ Hide');
+  const upcomingSection=upcomingGrid?h('div',null,
+    subheading('🗓️','Upcoming Habits',upcomingHabits.length),
+    upcomingGrid
+  ):null;
+
+  const inactiveToggleBtn=h('button',{className:'section-toggle',onClick:()=>toggleSection('checklist-inactive')},inactiveCollapsed?'▶ Show':'▼ Hide');
+  const inactiveSection=inactiveGrid?h('div',null,
+    h('div',{style:{display:'flex',alignItems:'center',gap:'6px',marginTop:'14px',marginBottom:'6px'}},
+      h('div',{style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'10px',fontWeight:'700',color:'var(--text3)',textTransform:'uppercase',letterSpacing:'.4px',flex:'1'}},
+        h('span',null,'💤'),'Inactive Today',
+        h('span',{style:{fontWeight:'600',color:'var(--text3)'}},`(${inactiveHabits.length})`)
+      ),
+      inactiveToggleBtn
+    ),
+    inactiveCollapsed?null:inactiveGrid
+  ):null;
 
   return h('div',{className:'card widget'},
     h('div',{className:'card-title'},
       h('span',{className:'card-title-icon'},'✅'),
       isCur?`Today's Habits — Day ${targetDay}`:`${MONTHS[month]} ${targetDay} Habits`,
-      h('span',{style:{marginLeft:'8px',background:'rgba(57,211,83,.15)',color:'#39d353',padding:'1px 7px',borderRadius:'10px',fontSize:'9px',fontWeight:'700'}},`${doneToday}/${habits.length}`),
+      h('span',{style:{marginLeft:'8px',background:'rgba(57,211,83,.15)',color:'#39d353',padding:'1px 7px',borderRadius:'10px',fontSize:'9px',fontWeight:'700'}},`${doneToday}/${todayHabits.length}`),
       toggleBtn
     ),
-    collapsed?null:grid
+    collapsed?null:h('div',null,
+      todayGrid,
+      upcomingSection,
+      inactiveSection
+    )
   );
 }
 
@@ -3062,7 +3147,10 @@ if(!load('ht2_seen_howto',false)){
 // Re-render once a minute so time-window highlights (🔵 "do this now") turn
 // on/off on their own as the clock crosses a window boundary, without
 // needing any click. Cheap no-op if no habit has a time window set.
-setInterval(()=>{ if(state.habits.some(hasTimeWindow)) render(); },60000);
+// Re-renders once a minute so: (1) time-window highlights stay live, and
+// (2) Today/Upcoming/Inactive habit grouping refreshes automatically when
+// the date rolls over — no new timer system, just reusing the existing render().
+setInterval(()=>{ render(); },60000);
 
 // ── LEADERBOARD BOOT ─────────────────────────────────────────────────────────
 // Firebase module script loads async and may resolve after render(). Once it's
@@ -3381,10 +3469,10 @@ function getShareFormat(){
 }
 
 function getPerf(pct){
-  if(pct>=90)return{name:'emerald',c1:'#0d2818',c2:'#1a4a2e',accent:'#39d353',glow:'rgba(57,211,83,.4)',label:'Exceptional'};
-  if(pct>=70)return{name:'ocean',c1:'#0d1a2e',c2:'#0d2040',accent:'#58a6ff',glow:'rgba(88,166,255,.35)',label:'Strong'};
-  if(pct>=50)return{name:'amber',c1:'#1e1408',c2:'#2e1e0a',accent:'#f0883e',glow:'rgba(240,136,62,.35)',label:'Building'};
-  return{name:'slate',c1:'#0d1117',c2:'#161b22',accent:'#8b949e',glow:'rgba(139,148,158,.2)',label:'Getting Started'};
+  if(pct>=90)return{name:'emerald',c1:'#071a0f',c2:'#0d2818',c3:'#122e1c',accent:'#39d353',accent2:'#57e879',glow:'rgba(57,211,83,.5)',glow2:'rgba(57,211,83,.15)',label:'Exceptional',labelColor:'#39d353'};
+  if(pct>=70)return{name:'green',c1:'#071a10',c2:'#0d2418',c3:'#132e1e',accent:'#26a641',accent2:'#39d353',glow:'rgba(38,166,65,.45)',glow2:'rgba(38,166,65,.12)',label:'Strong',labelColor:'#39d353'};
+  if(pct>=50)return{name:'ocean',c1:'#070f1a',c2:'#0d1a2e',c3:'#0f2040',accent:'#58a6ff',accent2:'#79bcff',glow:'rgba(88,166,255,.4)',glow2:'rgba(88,166,255,.1)',label:'Building',labelColor:'#58a6ff'};
+  return{name:'slate',c1:'#0d1117',c2:'#161b22',c3:'#1c2330',accent:'#8b949e',accent2:'#a5b4c0',glow:'rgba(139,148,158,.25)',glow2:'rgba(139,148,158,.07)',label:'Getting Started',labelColor:'#8b949e'};
 }
 
 function roundRect(ctx,x,y,w,h,r){
@@ -3576,187 +3664,407 @@ const HEAT_COLORS=['#1c2128','#1a3a1f','#215e28','#2ea043','#3dd460','#57e879'];
 function drawMonthlyCard(canvas,data,perf){
   const W=canvas.width,H=canvas.height;
   const ctx=canvas.getContext('2d');
-  const S=W/1080; // scale factor
+  const S=W/1080;
+  const PAD=52*S;
 
-  // BG gradient
+  // ── BACKGROUND: deep layered gradient ──
   const bg=ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0,perf.c1);bg.addColorStop(1,perf.c2);
+  bg.addColorStop(0,perf.c1);
+  bg.addColorStop(0.45,perf.c2);
+  bg.addColorStop(1,perf.c3||perf.c1);
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 
-  // Subtle grid texture
-  ctx.strokeStyle='rgba(255,255,255,.025)';ctx.lineWidth=1;
-  for(let x=0;x<W;x+=40*S){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-  for(let y=0;y<H;y+=40*S){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // Noise texture — subtle dot grid
+  ctx.save();
+  ctx.globalAlpha=0.018;
+  for(let x=0;x<W;x+=28*S){for(let y=0;y<H;y+=28*S){
+    ctx.beginPath();ctx.arc(x,y,1*S,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.fill();
+  }}
+  ctx.restore();
 
-  // Glow blob top-right
-  const glowR=ctx.createRadialGradient(W*.85,H*.1,0,W*.85,H*.1,W*.45);
-  glowR.addColorStop(0,perf.glow);glowR.addColorStop(1,'transparent');
+  // Glow orb — top right, large
+  const glowR=ctx.createRadialGradient(W*0.82,H*0.08,0,W*0.82,H*0.08,W*0.55);
+  glowR.addColorStop(0,perf.glow);
+  glowR.addColorStop(0.6,perf.glow2||'transparent');
+  glowR.addColorStop(1,'transparent');
   ctx.fillStyle=glowR;ctx.fillRect(0,0,W,H);
 
-  let cy=64*S; // cursor y
+  // Second glow — bottom left, muted
+  const glowL=ctx.createRadialGradient(W*0.15,H*0.92,0,W*0.15,H*0.92,W*0.4);
+  glowL.addColorStop(0,(perf.glow2||'rgba(255,255,255,.04)'));
+  glowL.addColorStop(1,'transparent');
+  ctx.fillStyle=glowL;ctx.fillRect(0,0,W,H);
 
-  // ── HEADER ──
-  // Logo
-  ctx.font=`${Math.round(22*S)}px Inter,sans-serif`;
+  // ── SECTION HELPERS ──
+  function sectionLabel(text,x,y){
+    ctx.save();
+    // Small accent dot
+    ctx.beginPath();ctx.arc(x,y-3.5*S,2.5*S,0,Math.PI*2);
+    ctx.fillStyle=perf.accent+'88';ctx.fill();
+    ctx.font=`700 ${Math.round(9*S)}px Inter,sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,.32)';
+    ctx.letterSpacing='2.5px';
+    ctx.fillText(text,x+9*S,y);
+    ctx.letterSpacing='0px';
+    ctx.restore();
+  }
+
+  function pill(x,y,w,h,r,fillColor,strokeColor){
+    roundRect(ctx,x,y,w,h,r);
+    ctx.fillStyle=fillColor;ctx.fill();
+    if(strokeColor){ctx.strokeStyle=strokeColor;ctx.lineWidth=1*S;ctx.stroke();}
+  }
+
+  // ════════════════════════════════════════════
+  //  ZONE 1 — HEADER (top ~22%)
+  // ════════════════════════════════════════════
+  let cy=56*S;
+
+  // Logo row
+  ctx.font=`${Math.round(18*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.5)';
+  ctx.fillText('📔',PAD,cy);
+  ctx.font=`600 ${Math.round(13*S)}px Inter,sans-serif`;
   ctx.fillStyle='rgba(255,255,255,.35)';
-  ctx.fillText('📔',42*S,cy+4*S);
-  ctx.font=`600 ${Math.round(15*S)}px Inter,sans-serif`;
+  ctx.fillText('ASCEND',PAD+28*S,cy-1*S);
+
+  // Performance badge — top right
+  const badgeText=perf.label.toUpperCase();
+  ctx.font=`700 ${Math.round(9.5*S)}px Inter,sans-serif`;
+  const bw=ctx.measureText(badgeText).width+20*S;
+  const bx=W-PAD-bw,by=cy-15*S,bh=20*S;
+  roundRect(ctx,bx,by,bw,bh,bh/2);
+  ctx.fillStyle=perf.accent+'22';ctx.fill();
+  ctx.strokeStyle=perf.accent+'55';ctx.lineWidth=1*S;ctx.stroke();
+  ctx.fillStyle=perf.accent;
+  ctx.textAlign='center';
+  ctx.fillText(badgeText,bx+bw/2,by+13.5*S);
+  ctx.textAlign='left';
+
+  // Month title — BIG
+  cy+=62*S;
+  const monthStr=MONTHS[data.month].toUpperCase();
+  ctx.save();
+  ctx.font=`800 ${Math.round(72*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.08)'; // ghost layer for depth
+  ctx.fillText(monthStr,PAD+2*S,cy+2*S);
+  ctx.restore();
+  drawGlowText(ctx,monthStr,PAD,cy,`800 ${Math.round(72*S)}px Inter,sans-serif`,'#e6edf3',perf.glow,20);
+
+  // Year — lighter, right-aligned baseline
+  ctx.font=`300 ${Math.round(30*S)}px Inter,sans-serif`;
   ctx.fillStyle='rgba(255,255,255,.3)';
-  ctx.fillText('Ascend',72*S,cy+2*S);
+  ctx.fillText(String(data.year),PAD,cy+28*S);
 
-  // Month + Year
-  cy+=52*S;
-  drawGlowText(ctx,MONTHS[data.month].toUpperCase(),42*S,cy,`800 ${Math.round(52*S)}px Inter,sans-serif`,'#e6edf3',perf.glow,30);
-  ctx.font=`300 ${Math.round(52*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.4)';
-  ctx.fillText(String(data.year),42*S+ctx.measureText(MONTHS[data.month].toUpperCase()+'  ').width,cy);
+  // ── HERO PERCENTAGE ──
+  cy+=88*S;
 
-  // Achievement message
-  cy+=32*S;
-  ctx.font=`400 italic ${Math.round(14*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.45)';
-  ctx.fillText(data.achieveMsg,42*S,cy);
+  // Arc ring behind the number (right side decoration)
+  const arcCX=W-PAD-90*S, arcCY=cy-60*S, arcR=88*S;
+  const arcAngle=(data.pct/100)*Math.PI*2;
+  // Track
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(arcCX,arcCY,arcR,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=6*S;ctx.stroke();
+  // Progress arc
+  ctx.beginPath();
+  ctx.arc(arcCX,arcCY,arcR,-Math.PI/2,-Math.PI/2+arcAngle);
+  const arcGrad=ctx.createLinearGradient(arcCX-arcR,arcCY,arcCX+arcR,arcCY);
+  arcGrad.addColorStop(0,perf.accent);arcGrad.addColorStop(1,perf.accent2||perf.accent);
+  ctx.strokeStyle=arcGrad;ctx.lineWidth=6*S;ctx.lineCap='round';
+  ctx.shadowColor=perf.glow;ctx.shadowBlur=12*S;
+  ctx.stroke();
+  // Inner label inside arc
+  ctx.font=`600 ${Math.round(11*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.3)';ctx.textAlign='center';
+  ctx.shadowBlur=0;
+  ctx.fillText(MONTHS[data.month].toUpperCase(),arcCX,arcCY-10*S);
+  ctx.font=`700 ${Math.round(10*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.18)';
+  ctx.fillText(String(data.year),arcCX,arcCY+8*S);
+  ctx.textAlign='left';
+  ctx.restore();
 
-  // Divider
+  // Massive % with glow
+  ctx.save();
+  ctx.font=`800 ${Math.round(148*S)}px Inter,sans-serif`;
+  // Shadow pass
+  ctx.shadowColor=perf.glow;ctx.shadowBlur=60*S;
+  ctx.fillStyle=perf.accent;
+  ctx.fillText(data.pct+'%',PAD-6*S,cy);
+  ctx.shadowBlur=0;
+  ctx.restore();
+
+  // Label below %
   cy+=22*S;
-  const div=ctx.createLinearGradient(42*S,0,(W-42*S),0);
-  div.addColorStop(0,perf.accent);div.addColorStop(1,'transparent');
-  ctx.strokeStyle=div;ctx.lineWidth=1.5*S;
-  ctx.beginPath();ctx.moveTo(42*S,cy);ctx.lineTo(W-42*S,cy);ctx.stroke();
-
-  // ── BIG COMPLETION % ──
-  cy+=58*S;
-  drawGlowText(ctx,data.pct+'%',42*S,cy,`800 ${Math.round(96*S)}px 'JetBrains Mono',monospace`,perf.accent,perf.glow,40);
   ctx.font=`500 ${Math.round(14*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.45)';
-  ctx.fillText('completion this month',42*S,cy+22*S);
+  ctx.fillStyle='rgba(255,255,255,.38)';
+  ctx.fillText('MONTHLY COMPLETION',PAD,cy);
 
-  // ── STATS ROW ──
-  cy+=64*S;
-  const stats=[
-    {val:String(data.totalDone),lbl:'completed',color:'#e6edf3'},
-    {val:data.curStreak+'d',lbl:'streak',color:perf.accent},
-    {val:data.bestStreak+'d',lbl:'best',color:'#e3b341'},
-  ];
-  stats.forEach((st,i)=>{
-    const sx=42*S+i*200*S;
-    // Pill bg
-    roundRect(ctx,sx-14*S,cy-36*S,170*S,56*S,10*S);
-    ctx.fillStyle='rgba(255,255,255,.05)';ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1*S;ctx.stroke();
-    // Value
-    ctx.font=`700 ${Math.round(28*S)}px 'JetBrains Mono',monospace`;
-    ctx.fillStyle=st.color;ctx.fillText(st.val,sx,cy);
-    // Label
-    ctx.font=`500 ${Math.round(10*S)}px Inter,sans-serif`;
-    ctx.fillStyle='rgba(255,255,255,.35)';
-    ctx.fillText(st.lbl.toUpperCase(),sx,cy+16*S);
+  // Subtle divider line
+  cy+=22*S;
+  const divG=ctx.createLinearGradient(PAD,0,W-PAD,0);
+  divG.addColorStop(0,perf.accent+'cc');
+  divG.addColorStop(0.4,perf.accent+'44');
+  divG.addColorStop(1,'transparent');
+  ctx.strokeStyle=divG;ctx.lineWidth=1.5*S;
+  ctx.beginPath();ctx.moveTo(PAD,cy);ctx.lineTo(W-PAD,cy);ctx.stroke();
+
+  // ════════════════════════════════════════════
+  //  ZONE 2 — MIDDLE (50%): heatmap + habits + stats
+  // ════════════════════════════════════════════
+
+  // ── MONTHLY HEATMAP (large, full-width) ──
+  cy+=34*S;
+  sectionLabel('THIS MONTH',PAD,cy);
+  cy+=18*S;
+
+  // Day-of-week labels
+  const DOW_LABELS=['S','M','T','W','T','F','S'];
+  const cellSize=Math.round(H>1080?33*S:28*S);
+  const cellGap=Math.round(5*S);
+  const heatW=7*(cellSize+cellGap)-cellGap;
+  // Center the heatmap horizontally
+  const heatX=PAD;
+
+  ctx.font=`500 ${Math.round(8.5*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.22)';
+  DOW_LABELS.forEach((lbl,i)=>{
+    ctx.textAlign='center';
+    ctx.fillText(lbl,heatX+i*(cellSize+cellGap)+cellSize/2,cy);
   });
+  ctx.textAlign='left';
+  cy+=12*S;
 
-  // ── MONTHLY HEATMAP ──
-  cy+=52*S;
-  ctx.font=`600 ${Math.round(10*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.3)';ctx.letterSpacing='2px';
-  ctx.fillText('THIS MONTH',42*S,cy);ctx.letterSpacing='0px';
-  cy+=16*S;
-
-  const cellSize=Math.round(22*S),cellGap=Math.round(4*S);
   const cols=7;
   const startDow=new Date(data.year,data.month,1).getDay();
   for(let d=0;d<data.dailyLevels.length;d++){
     const col=(d+startDow)%cols;
     const row=Math.floor((d+startDow)/cols);
-    const cx2=42*S+col*(cellSize+cellGap);
+    const cx2=heatX+col*(cellSize+cellGap);
     const cy2=cy+row*(cellSize+cellGap);
     const level=data.dailyLevels[d];
-    roundRect(ctx,cx2,cy2,cellSize,cellSize,3*S);
+    roundRect(ctx,cx2,cy2,cellSize,cellSize,4*S);
     ctx.fillStyle=HEAT_COLORS[level];ctx.fill();
-    if(level>=4){ctx.shadowColor=HEAT_COLORS[level];ctx.shadowBlur=6*S;ctx.fill();ctx.shadowBlur=0;}
+    if(level>=4){
+      ctx.save();
+      ctx.shadowColor=HEAT_COLORS[level];ctx.shadowBlur=8*S;
+      ctx.fill();ctx.restore();
+    }
+    // Day number inside cell
+    if(cellSize>=26*S){
+      ctx.font=`500 ${Math.round(7*S)}px Inter,sans-serif`;
+      ctx.fillStyle=level>=3?'rgba(0,0,0,.5)':'rgba(255,255,255,.18)';
+      ctx.textAlign='center';
+      ctx.fillText(String(d+1),cx2+cellSize/2,cy2+cellSize/2+3*S);
+      ctx.textAlign='left';
+    }
   }
   const heatRows=Math.ceil((data.dailyLevels.length+startDow)/cols);
-  cy+=heatRows*(cellSize+cellGap)+18*S;
+  cy+=heatRows*(cellSize+cellGap)+32*S;
 
-  // ── TOP 3 HABITS ──
-  ctx.font=`600 ${Math.round(10*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.3)';ctx.letterSpacing='2px';
-  ctx.fillText('TOP HABITS',42*S,cy);ctx.letterSpacing='0px';
-  cy+=16*S;
-
-  data.habitRanked.forEach((h,i)=>{
-    const barW=560*S,barH=34*S;
-    const bx=42*S,by=cy+i*(barH+8*S);
-    // bg
-    roundRect(ctx,bx,by,barW,barH,6*S);
+  // ── STAT PILLS ──
+  const stats=[
+    {val:data.totalDone+'',lbl:'Habits Done',color:'#e6edf3'},
+    {val:data.curStreak+'d',lbl:'Current Streak',color:perf.accent},
+    {val:data.bestStreak+'d',lbl:'Best Streak',color:'#e3b341'},
+  ];
+  const pillW=(W-PAD*2-16*S*2)/3;
+  const pillH=66*S;
+  stats.forEach((st,i)=>{
+    const px2=PAD+i*(pillW+16*S),py=cy;
+    roundRect(ctx,px2,py,pillW,pillH,10*S);
     ctx.fillStyle='rgba(255,255,255,.05)';ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;ctx.stroke();
-    // fill bar
-    roundRect(ctx,bx,by,Math.max(barW*h.pct/100,barH),barH,6*S);
-    const bf=ctx.createLinearGradient(bx,0,bx+barW,0);
-    bf.addColorStop(0,perf.accent+'80');bf.addColorStop(1,perf.accent+'20');
-    ctx.fillStyle=bf;ctx.fill();
-    // text
-    ctx.font=`500 ${Math.round(12*S)}px Inter,sans-serif`;
-    ctx.fillStyle='#e6edf3';
-    ctx.fillText(`${h.emoji} ${h.name}`,bx+12*S,by+barH/2+4*S);
-    ctx.font=`700 ${Math.round(12*S)}px 'JetBrains Mono',monospace`;
-    ctx.fillStyle=perf.accent;
-    ctx.textAlign='right';
-    ctx.fillText(h.pct+'%',bx+barW-12*S,by+barH/2+4*S);
+    ctx.strokeStyle='rgba(255,255,255,.09)';ctx.lineWidth=1*S;ctx.stroke();
+    // Top accent line
+    ctx.save();
+    roundRect(ctx,px2+10*S,py,pillW-20*S,2.5*S,1.5*S);
+    ctx.fillStyle=st.color+'66';ctx.fill();
+    ctx.restore();
+    // Value
+    ctx.font=`700 ${Math.round(28*S)}px 'JetBrains Mono',monospace`;
+    ctx.fillStyle=st.color;
+    ctx.textAlign='center';
+    ctx.fillText(st.val,px2+pillW/2,py+36*S);
+    // Label
+    ctx.font=`500 ${Math.round(9*S)}px Inter,sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,.28)';
+    ctx.fillText(st.lbl.toUpperCase(),px2+pillW/2,py+54*S);
     ctx.textAlign='left';
   });
-  cy+=data.habitRanked.length*(34*S+8*S)+16*S;
+  cy+=pillH+32*S;
 
-  // ── MOOD & ENERGY ──
-  if(data.avgMood||data.avgEnergy){
-    const MOOD_EM=['😞','😕','😐','🙂','😊','😄','🤩'];
-    const moodIdx=data.avgMood?Math.min(6,Math.round((data.avgMood/10)*6)):null;
-    const px=42*S;
-    roundRect(ctx,px,cy,560*S,50*S,10*S);
-    ctx.fillStyle='rgba(255,255,255,.04)';ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;ctx.stroke();
+  // ── TOP HABITS with medal bars ──
+  if(data.habitRanked&&data.habitRanked.length>0){
+    sectionLabel('TOP HABITS',PAD,cy);
+    cy+=18*S;
 
-    ctx.font=`${Math.round(22*S)}px Inter,sans-serif`;
-    ctx.fillText(moodIdx!==null?MOOD_EM[moodIdx]:'😐',px+14*S,cy+34*S);
-    ctx.font=`400 ${Math.round(11*S)}px Inter,sans-serif`;
-    ctx.fillStyle='rgba(255,255,255,.4)';
-    ctx.fillText('AVG MOOD',px+46*S,cy+22*S);
-    if(data.avgMood){
-      ctx.font=`700 ${Math.round(16*S)}px 'JetBrains Mono',monospace`;
-      ctx.fillStyle='#f0883e';
-      ctx.fillText(data.avgMood.toFixed(1)+'/10',px+46*S,cy+40*S);
-    }
+    const MEDALS=['🥇','🥈','🥉'];
+    const barTotalW=W-PAD*2;
+    const barH=40*S;
+    const barGap=8*S;
 
-    if(data.avgEnergy){
-      ctx.font=`400 ${Math.round(11*S)}px Inter,sans-serif`;
-      ctx.fillStyle='rgba(255,255,255,.4)';
-      ctx.fillText('AVG ENERGY',px+200*S,cy+22*S);
-      ctx.font=`700 ${Math.round(16*S)}px 'JetBrains Mono',monospace`;
-      ctx.fillStyle='#58a6ff';
-      ctx.fillText(data.avgEnergy.toFixed(1)+'/10',px+200*S,cy+40*S);
-    }
+    data.habitRanked.forEach((h,i)=>{
+      const by=cy+i*(barH+barGap);
+      const fillRatio=Math.max(0.04,h.pct/100);
 
-    const bdow=data.bestDow||'';
-    if(bdow){
-      ctx.font=`400 ${Math.round(11*S)}px Inter,sans-serif`;
-      ctx.fillStyle='rgba(255,255,255,.4)';
-      ctx.fillText('BEST DAY',px+370*S,cy+22*S);
-      ctx.font=`700 ${Math.round(14*S)}px Inter,sans-serif`;
-      ctx.fillStyle='#e3b341';
-      ctx.fillText(bdow,px+370*S,cy+40*S);
-    }
-    cy+=66*S;
+      // Track bg
+      roundRect(ctx,PAD,by,barTotalW,barH,8*S);
+      ctx.fillStyle='rgba(255,255,255,.04)';ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1*S;ctx.stroke();
+
+      // Fill bar
+      roundRect(ctx,PAD,by,barTotalW*fillRatio,barH,8*S);
+      const bf=ctx.createLinearGradient(PAD,0,PAD+barTotalW,0);
+      bf.addColorStop(0,perf.accent+'99');
+      bf.addColorStop(1,perf.accent+'18');
+      ctx.fillStyle=bf;ctx.fill();
+
+      // Medal
+      ctx.font=`${Math.round(16*S)}px Inter,sans-serif`;
+      ctx.fillText(MEDALS[i]||'',PAD+10*S,by+barH/2+6*S);
+
+      // Habit name
+      ctx.font=`600 ${Math.round(13*S)}px Inter,sans-serif`;
+      ctx.fillStyle='#e6edf3';
+      const nameX=PAD+34*S;
+      // Truncate if needed
+      let hname=(h.emoji?' ':'')+h.name;
+      ctx.fillText(hname,nameX,by+barH/2+5*S);
+
+      // Percentage — right aligned
+      ctx.font=`700 ${Math.round(14*S)}px 'JetBrains Mono',monospace`;
+      ctx.fillStyle=perf.accent;
+      ctx.textAlign='right';
+      ctx.fillText(h.pct+'%',PAD+barTotalW-12*S,by+barH/2+5*S);
+      ctx.textAlign='left';
+    });
+    cy+=data.habitRanked.length*(barH+barGap)+32*S;
   }
 
-  // ── FOOTER ──
-  cy=H-36*S;
+  // ── MOOD + BEST DAY (if available) ──
+  if(data.avgMood||data.avgEnergy||data.bestDow){
+    const moodPillW=(W-PAD*2-12*S*(2))/3;
+    const MOOD_EM=['😞','😕','😐','🙂','😊','😄','🤩'];
+
+    const moodItems=[];
+    if(data.avgMood){
+      const idx=Math.min(6,Math.round((data.avgMood/10)*6));
+      moodItems.push({icon:MOOD_EM[idx],label:'Avg Mood',val:data.avgMood.toFixed(1)+'/10',color:'#f0883e'});
+    }
+    if(data.avgEnergy){
+      moodItems.push({icon:'⚡',label:'Avg Energy',val:data.avgEnergy.toFixed(1)+'/10',color:'#58a6ff'});
+    }
+    if(data.bestDow){
+      moodItems.push({icon:'📅',label:'Best Day',val:data.bestDow,color:'#e3b341'});
+    }
+
+    const mPillH=64*S;
+    const mPillW=(W-PAD*2-(moodItems.length-1)*12*S)/moodItems.length;
+    moodItems.forEach((mi,i)=>{
+      const mx=PAD+i*(mPillW+12*S);
+      roundRect(ctx,mx,cy,mPillW,mPillH,10*S);
+      ctx.fillStyle='rgba(255,255,255,.04)';ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1*S;ctx.stroke();
+      // icon
+      ctx.font=`${Math.round(18*S)}px Inter,sans-serif`;
+      ctx.fillText(mi.icon,mx+12*S,cy+28*S);
+      // label
+      ctx.font=`500 ${Math.round(8.5*S)}px Inter,sans-serif`;
+      ctx.fillStyle='rgba(255,255,255,.3)';
+      ctx.fillText(mi.label.toUpperCase(),mx+12*S,cy+44*S);
+      // value
+      ctx.font=`700 ${Math.round(12*S)}px 'JetBrains Mono',monospace`;
+      ctx.fillStyle=mi.color;
+      ctx.textAlign='right';
+      ctx.fillText(mi.val,mx+mPillW-12*S,cy+28*S);
+      ctx.textAlign='left';
+    });
+    cy+=mPillH+32*S;
+  }
+
+  // ════════════════════════════════════════════
+  //  ZONE 3 — BOTTOM (insight + quote + branding)
+  // ════════════════════════════════════════════
+
+  // Pin to bottom — compute remaining
+  const footerH=130*S;
+  const insightY=H-footerH-10*S;
+
+  // ── INSIGHT PILL ──
+  const insightPillH=68*S;
+  roundRect(ctx,PAD,insightY,W-PAD*2,insightPillH,14*S);
+  // Gradient fill
+  const ipG=ctx.createLinearGradient(PAD,insightY,W-PAD,insightY+insightPillH);
+  ipG.addColorStop(0,perf.accent+'18');
+  ipG.addColorStop(1,'rgba(255,255,255,.03)');
+  ctx.fillStyle=ipG;ctx.fill();
+  ctx.strokeStyle=perf.accent+'40';ctx.lineWidth=1.5*S;ctx.stroke();
+
+  // Left accent bar
+  roundRect(ctx,PAD,insightY,4*S,insightPillH,2*S);
+  ctx.fillStyle=perf.accent;
+  ctx.shadowColor=perf.glow;ctx.shadowBlur=10*S;
+  ctx.fill();ctx.shadowBlur=0;
+
+  // Insight icon
+  ctx.font=`${Math.round(20*S)}px Inter,sans-serif`;
+  ctx.fillText('💡',PAD+16*S,insightY+42*S);
+
+  // Insight text
+  ctx.font=`500 ${Math.round(13*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.75)';
+  // wrap text if too long
+  const insightText=data.achieveMsg;
+  const maxW=W-PAD*2-60*S;
+  // simple single-line truncation at max
+  let displayInsight=insightText;
+  ctx.font=`500 ${Math.round(13*S)}px Inter,sans-serif`;
+  if(ctx.measureText(displayInsight).width>maxW){
+    while(ctx.measureText(displayInsight+'…').width>maxW&&displayInsight.length>0){
+      displayInsight=displayInsight.slice(0,-1);
+    }
+    displayInsight+='…';
+  }
+  ctx.fillText(displayInsight,PAD+46*S,insightY+30*S);
+  ctx.font=`400 ${Math.round(10*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.3)';
+  ctx.fillText('Personal Insight',PAD+46*S,insightY+48*S);
+
+  // ── QUOTE + BRANDING ──
   const quote=SHARE_QUOTES[Math.floor(Math.random()*SHARE_QUOTES.length)];
-  ctx.font=`300 italic ${Math.round(12*S)}px Inter,sans-serif`;
+  const qy=H-60*S;
+
+  // Big decorative quote marks
+  ctx.save();
+  ctx.font=`900 ${Math.round(36*S)}px Georgia,serif`;
+  ctx.fillStyle=perf.accent+'22';
+  ctx.textAlign='center';
+  ctx.fillText('\u201C',W/2-ctx.measureText(`"${quote}"`).width/2-12*S,qy+8*S);
+  ctx.restore();
+
+  ctx.font=`300 italic ${Math.round(13*S)}px Inter,sans-serif`;
   ctx.fillStyle='rgba(255,255,255,.22)';
   ctx.textAlign='center';
-  ctx.fillText(`"${quote}"`,W/2,cy);
+  ctx.fillText(`"${quote}"`,W/2,qy);
+
+  // Thin separator above footer
+  ctx.save();
+  const footerDiv=ctx.createLinearGradient(PAD,0,W-PAD,0);
+  footerDiv.addColorStop(0,'transparent');footerDiv.addColorStop(0.5,'rgba(255,255,255,.1)');footerDiv.addColorStop(1,'transparent');
+  ctx.strokeStyle=footerDiv;ctx.lineWidth=1*S;
+  ctx.beginPath();ctx.moveTo(PAD,H-82*S);ctx.lineTo(W-PAD,H-82*S);ctx.stroke();
+  ctx.restore();
+
+  // Ascend branding — centered with dot separator
+  ctx.font=`${Math.round(13*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.15)';
+  ctx.fillText('📔',W/2-45*S,H-26*S);
   ctx.font=`500 ${Math.round(10*S)}px Inter,sans-serif`;
   ctx.fillStyle='rgba(255,255,255,.15)';
-  ctx.fillText('Built with Ascend',W/2,cy+18*S);
+  ctx.fillText('Built with Ascend',W/2-20*S,H-26*S);
   ctx.textAlign='left';
 }
 
@@ -3766,164 +4074,259 @@ function drawYearlyCard(canvas,data,perf){
   const W=canvas.width,H=canvas.height;
   const ctx=canvas.getContext('2d');
   const S=W/1080;
+  const PAD=52*S;
 
-  // BG
+  // ── BACKGROUND ──
   const bg=ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0,perf.c1);bg.addColorStop(.5,perf.c2);bg.addColorStop(1,perf.c1);
+  bg.addColorStop(0,perf.c1);bg.addColorStop(0.5,perf.c2);bg.addColorStop(1,perf.c3||perf.c1);
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 
-  // Grid texture
-  ctx.strokeStyle='rgba(255,255,255,.02)';ctx.lineWidth=1;
-  for(let x=0;x<W;x+=60*S){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-  for(let y=0;y<H;y+=60*S){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // Dot noise
+  ctx.save();ctx.globalAlpha=0.016;
+  for(let x=0;x<W;x+=30*S){for(let y=0;y<H;y+=30*S){
+    ctx.beginPath();ctx.arc(x,y,1*S,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.fill();
+  }}
+  ctx.restore();
 
-  // Glow center
-  const glowC=ctx.createRadialGradient(W/2,H*.3,0,W/2,H*.3,W*.6);
-  glowC.addColorStop(0,perf.glow);glowC.addColorStop(1,'transparent');
-  ctx.fillStyle=glowC;ctx.fillRect(0,0,W,H);
+  // Glow orbs
+  const gR=ctx.createRadialGradient(W*0.78,H*0.1,0,W*0.78,H*0.1,W*0.5);
+  gR.addColorStop(0,perf.glow);gR.addColorStop(1,'transparent');
+  ctx.fillStyle=gR;ctx.fillRect(0,0,W,H);
+  const gL=ctx.createRadialGradient(W*0.2,H*0.88,0,W*0.2,H*0.88,W*0.38);
+  gL.addColorStop(0,perf.glow2||'rgba(255,255,255,.04)');gL.addColorStop(1,'transparent');
+  ctx.fillStyle=gL;ctx.fillRect(0,0,W,H);
 
-  let cy=60*S;
+  function sectionLabel(text,x,y){
+    ctx.save();
+    ctx.beginPath();ctx.arc(x,y-3.5*S,2.5*S,0,Math.PI*2);
+    ctx.fillStyle=perf.accent+'88';ctx.fill();
+    ctx.font=`700 ${Math.round(9*S)}px Inter,sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,.32)';
+    ctx.letterSpacing='2.5px';ctx.fillText(text,x+9*S,y);ctx.letterSpacing='0px';
+    ctx.restore();
+  }
+
+  // ════════════════════════════════════════════
+  //  ZONE 1 — HEADER
+  // ════════════════════════════════════════════
+  let cy=56*S;
 
   // Logo
-  ctx.font=`${Math.round(18*S)}px Inter,sans-serif`;ctx.fillStyle='rgba(255,255,255,.3)';
-  ctx.fillText('📔',42*S,cy);
-  ctx.font=`600 ${Math.round(13*S)}px Inter,sans-serif`;ctx.fillStyle='rgba(255,255,255,.25)';
-  ctx.fillText('Ascend',66*S,cy-2*S);
+  ctx.font=`${Math.round(16*S)}px Inter,sans-serif`;ctx.fillStyle='rgba(255,255,255,.5)';
+  ctx.fillText('📔',PAD,cy);
+  ctx.font=`600 ${Math.round(12*S)}px Inter,sans-serif`;ctx.fillStyle='rgba(255,255,255,.35)';
+  ctx.fillText('ASCEND',PAD+26*S,cy-2*S);
 
-  // Year
-  cy+=56*S;
-  drawGlowText(ctx,String(data.year),42*S,cy,`800 ${Math.round(88*S)}px Inter,sans-serif`,'#e6edf3',perf.glow,40);
+  // Performance badge
+  const badgeText=perf.label.toUpperCase();
+  ctx.font=`700 ${Math.round(9.5*S)}px Inter,sans-serif`;
+  const bw=ctx.measureText(badgeText).width+20*S;
+  const bx=W-PAD-bw,by=cy-15*S,bh=20*S;
+  roundRect(ctx,bx,by,bw,bh,bh/2);
+  ctx.fillStyle=perf.accent+'22';ctx.fill();
+  ctx.strokeStyle=perf.accent+'55';ctx.lineWidth=1*S;ctx.stroke();
+  ctx.fillStyle=perf.accent;ctx.textAlign='center';
+  ctx.fillText(badgeText,bx+bw/2,by+13.5*S);ctx.textAlign='left';
+
+  // Year — massive
+  cy+=66*S;
+  ctx.save();
+  ctx.font=`800 ${Math.round(100*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.06)';
+  ctx.fillText(String(data.year),PAD+2*S,cy+2*S);
+  ctx.restore();
+  drawGlowText(ctx,String(data.year),PAD,cy,`800 ${Math.round(100*S)}px Inter,sans-serif`,'#e6edf3',perf.glow,22);
+
   ctx.font=`300 ${Math.round(18*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.35)';
-  ctx.fillText('in review',42*S,cy+24*S);
+  ctx.fillStyle='rgba(255,255,255,.3)';
+  ctx.fillText('IN REVIEW',PAD,cy+28*S);
 
-  // Year message
-  cy+=48*S;
-  ctx.font=`400 italic ${Math.round(14*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.4)';
-  ctx.fillText(data.yearMsg,42*S,cy);
+  // Sub message
+  cy+=44*S;
+  ctx.font=`400 italic ${Math.round(13*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.35)';
+  ctx.fillText(data.yearMsg,PAD,cy);
 
   // Divider
-  cy+=22*S;
-  const div=ctx.createLinearGradient(42*S,0,(W-42*S),0);
-  div.addColorStop(0,perf.accent);div.addColorStop(1,'transparent');
-  ctx.strokeStyle=div;ctx.lineWidth=1.5*S;
-  ctx.beginPath();ctx.moveTo(42*S,cy);ctx.lineTo(W-42*S,cy);ctx.stroke();
+  cy+=20*S;
+  const dG=ctx.createLinearGradient(PAD,0,W-PAD,0);
+  dG.addColorStop(0,perf.accent+'cc');dG.addColorStop(0.4,perf.accent+'33');dG.addColorStop(1,'transparent');
+  ctx.strokeStyle=dG;ctx.lineWidth=1.5*S;
+  ctx.beginPath();ctx.moveTo(PAD,cy);ctx.lineTo(W-PAD,cy);ctx.stroke();
 
-  // ── BIG % ──
+  // BIG % hero
   cy+=60*S;
-  drawGlowText(ctx,data.pct+'%',42*S,cy,`800 ${Math.round(86*S)}px 'JetBrains Mono',monospace`,perf.accent,perf.glow,40);
-  ctx.font=`400 ${Math.round(14*S)}px Inter,sans-serif`;
+  ctx.save();
+  ctx.font=`800 ${Math.round(130*S)}px Inter,sans-serif`;
+  ctx.shadowColor=perf.glow;ctx.shadowBlur=55*S;
+  ctx.fillStyle=perf.accent;
+  ctx.fillText(data.pct+'%',PAD-4*S,cy);
+  ctx.shadowBlur=0;ctx.restore();
+
+  cy+=20*S;
+  ctx.font=`500 ${Math.round(13*S)}px Inter,sans-serif`;
   ctx.fillStyle='rgba(255,255,255,.35)';
-  ctx.fillText(`${data.totalDone.toLocaleString()} habits completed in ${data.year}`,42*S,cy+22*S);
+  ctx.fillText('YEARLY COMPLETION  ·  '+data.totalDone.toLocaleString()+' HABITS DONE',PAD,cy);
 
   // ── STAT PILLS ──
-  cy+=58*S;
-  const stats=[
-    {val:data.bestStreak+'d',lbl:'best streak',c:'#e3b341'},
-    {val:String(data.habits.length),lbl:'active habits',c:'#58a6ff'},
-    {val:data.topHabit?data.topHabit.emoji+' '+data.topHabit.pct+'%':'—',lbl:'top habit',c:perf.accent},
+  cy+=32*S;
+  const yStats=[
+    {val:data.bestStreak+'d',lbl:'Best Streak',c:'#e3b341'},
+    {val:String(data.habits.length),lbl:'Active Habits',c:'#58a6ff'},
+    {val:data.topHabit?data.topHabit.pct+'%':'—',lbl:data.topHabit?data.topHabit.name:'Top Habit',c:perf.accent},
   ];
-  stats.forEach((st,i)=>{
-    const sx=42*S+i*330*S;
-    roundRect(ctx,sx-10*S,cy-36*S,300*S,54*S,10*S);
+  const sPillW=(W-PAD*2-16*S*2)/3;
+  const sPillH=62*S;
+  yStats.forEach((st,i)=>{
+    const sx=PAD+i*(sPillW+16*S);
+    roundRect(ctx,sx,cy,sPillW,sPillH,10*S);
     ctx.fillStyle='rgba(255,255,255,.05)';ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;ctx.stroke();
-    ctx.font=`700 ${Math.round(24*S)}px 'JetBrains Mono',monospace`;
-    ctx.fillStyle=st.c;ctx.fillText(st.val,sx,cy);
-    ctx.font=`500 ${Math.round(9*S)}px Inter,sans-serif`;
-    ctx.fillStyle='rgba(255,255,255,.3)';
-    ctx.fillText(st.lbl.toUpperCase(),sx,cy+16*S);
+    ctx.strokeStyle='rgba(255,255,255,.09)';ctx.lineWidth=1*S;ctx.stroke();
+    ctx.font=`700 ${Math.round(26*S)}px 'JetBrains Mono',monospace`;
+    ctx.fillStyle=st.c;ctx.textAlign='center';
+    ctx.fillText(st.val,sx+sPillW/2,cy+34*S);
+    ctx.font=`500 ${Math.round(8.5*S)}px Inter,sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,.28)';
+    // Truncate label
+    let lbl=st.lbl;
+    while(ctx.measureText(lbl).width>sPillW-12*S&&lbl.length>0)lbl=lbl.slice(0,-1);
+    ctx.fillText(lbl.toUpperCase()+(lbl.length<st.lbl.length?'…':''),sx+sPillW/2,cy+52*S);
+    ctx.textAlign='left';
+  });
+  cy+=sPillH+36*S;
+
+  // ════════════════════════════════════════════
+  //  ZONE 2 — FULL-WIDTH YEARLY HEATMAP
+  // ════════════════════════════════════════════
+  sectionLabel('CONTRIBUTION GRAPH',PAD,cy);
+  cy+=16*S;
+
+  // Day labels left column
+  const DOW_SHORT=['S','M','T','W','T','F','S'];
+  const cellSz=Math.round(H>1080?12*S:10.5*S);
+  const cellGp=Math.round(2.5*S);
+  const heatLeft=PAD+18*S; // leave room for day labels
+
+  ctx.font=`500 ${Math.round(7*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.2)';
+  [1,3,5].forEach(d=>{ // Mon, Wed, Fri
+    ctx.fillText(DOW_SHORT[d],PAD,cy+d*(cellSz+cellGp)+cellSz/2+2.5*S);
   });
 
-  // ── YEARLY HEATMAP ──
-  cy+=52*S;
-  ctx.font=`600 ${Math.round(9*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.3)';ctx.letterSpacing='2px';
-  ctx.fillText('CONTRIBUTION GRAPH',42*S,cy);ctx.letterSpacing='0px';
-  cy+=14*S;
-
-  const cellSz=Math.round(11*S),cellGp=Math.round(2.5*S);
-  const weeksX=42*S;
   data.weeks.forEach((week,wi)=>{
     week.forEach((date,di)=>{
       const level=getCellLevel(date,data.habits,state.checks);
-      const cx2=weeksX+wi*(cellSz+cellGp);
+      const cx2=heatLeft+wi*(cellSz+cellGp);
       const cy2=cy+di*(cellSz+cellGp);
       roundRect(ctx,cx2,cy2,cellSz,cellSz,2*S);
       ctx.fillStyle=HEAT_COLORS[level];ctx.fill();
-      if(level>=4){ctx.shadowColor=HEAT_COLORS[level];ctx.shadowBlur=4*S;ctx.fill();ctx.shadowBlur=0;}
+      if(level>=4){
+        ctx.save();ctx.shadowColor=HEAT_COLORS[level];ctx.shadowBlur=4*S;ctx.fill();ctx.restore();
+      }
     });
   });
-  cy+=7*(cellSz+cellGp)+22*S;
 
-  // Month labels under heatmap
+  // Month labels
+  cy+=7*(cellSz+cellGp)+14*S;
   const MONTHS_SHORT2=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  ctx.font=`400 ${Math.round(8*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.25)';
+  ctx.font=`400 ${Math.round(7.5*S)}px Inter,sans-serif`;
+  ctx.fillStyle='rgba(255,255,255,.22)';
   const jan1=new Date(data.year,0,1);
   const startDow2=jan1.getDay();
   MONTHS_SHORT2.forEach((mn,mi)=>{
     const firstOfMonth=new Date(data.year,mi,1);
     const dayOfYear=Math.floor((firstOfMonth-new Date(data.year,0,1))/86400000);
     const weekIdx=Math.floor((dayOfYear+startDow2)/7);
-    ctx.fillText(mn,weeksX+weekIdx*(cellSz+cellGp),cy);
+    ctx.fillText(mn,heatLeft+weekIdx*(cellSz+cellGp),cy);
   });
-  cy+=18*S;
+  cy+=22*S;
 
   // ── MONTHLY BAR CHART ──
-  ctx.font=`600 ${Math.round(9*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.3)';ctx.letterSpacing='2px';
-  ctx.fillText('MONTHLY BREAKDOWN',42*S,cy);ctx.letterSpacing='0px';
-  cy+=14*S;
+  sectionLabel('MONTHLY BREAKDOWN',PAD,cy);
+  cy+=16*S;
 
-  const barAreaW=W-84*S;
-  const barCount=data.monthlyPct.filter(v=>v!==null).length;
-  const barW2=Math.floor(barAreaW/12)-4*S;
-  const maxBarH=80*S;
+  const barAreaW=W-PAD*2;
+  const barW2=Math.floor(barAreaW/12)-5*S;
+  const maxBarH=H>1080?90*S:75*S;
 
   data.monthlyPct.forEach((p,mi)=>{
-    if(p===null){return;}
-    const bx=42*S+mi*(barAreaW/12);
-    const bh=p>0?Math.max(4*S,maxBarH*p/100):3*S;
-    const by=cy+maxBarH-bh;
+    if(p===null)return;
+    const bx=PAD+mi*(barAreaW/12);
+    const bh=p>0?Math.max(5*S,maxBarH*p/100):3*S;
+    const bby=cy+maxBarH-bh;
 
-    // Bar bg
+    // Track
     roundRect(ctx,bx,cy,barW2,maxBarH,3*S);
     ctx.fillStyle='rgba(255,255,255,.04)';ctx.fill();
 
-    // Bar fill
-    roundRect(ctx,bx,by,barW2,bh,3*S);
-    const bf=ctx.createLinearGradient(0,by,0,by+bh);
-    bf.addColorStop(0,perf.accent);bf.addColorStop(1,perf.accent+'60');
-    ctx.fillStyle=bf;ctx.fill();
+    // Fill with glow on high bars
+    roundRect(ctx,bx,bby,barW2,bh,3*S);
+    const bf=ctx.createLinearGradient(0,bby,0,bby+bh);
+    bf.addColorStop(0,perf.accent);bf.addColorStop(1,perf.accent+'44');
+    ctx.fillStyle=bf;
+    if(p>=80){ctx.save();ctx.shadowColor=perf.glow;ctx.shadowBlur=8*S;}
+    ctx.fill();
+    if(p>=80)ctx.restore();
 
     // Month label
-    ctx.font=`500 ${Math.round(8*S)}px Inter,sans-serif`;
-    ctx.fillStyle='rgba(255,255,255,.3)';
+    ctx.font=`500 ${Math.round(7.5*S)}px Inter,sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,.28)';
     ctx.textAlign='center';
     ctx.fillText(MONTHS_SHORT2[mi],bx+barW2/2,cy+maxBarH+14*S);
 
-    // % on bar if room
-    if(p>20){
-      ctx.font=`700 ${Math.round(8*S)}px Inter,sans-serif`;
-      ctx.fillStyle='rgba(255,255,255,.7)';
-      ctx.fillText(p+'%',bx+barW2/2,by+bh/2+3*S);
+    // % label: inside bar if tall enough, above bar if short
+    ctx.font=`700 ${Math.round(7.5*S)}px Inter,sans-serif`;
+    if(p>22){
+      ctx.fillStyle='rgba(255,255,255,.72)';
+      ctx.fillText(p+'%',bx+barW2/2,bby+bh/2+3*S);
+    } else if(p>0){
+      ctx.fillStyle=perf.accent;
+      ctx.fillText(p+'%',bx+barW2/2,bby-5*S);
     }
     ctx.textAlign='left';
   });
-  cy+=maxBarH+28*S;
+  cy+=maxBarH+32*S;
+
+  // ── TOP HABIT BAR ──
+  if(data.topHabit){
+    const th=data.topHabit;
+    const thW=W-PAD*2,thH=46*S;
+    roundRect(ctx,PAD,cy,thW,thH,10*S);
+    const thG=ctx.createLinearGradient(PAD,cy,PAD+thW,cy+thH);
+    thG.addColorStop(0,perf.accent+'22');thG.addColorStop(1,'rgba(255,255,255,.03)');
+    ctx.fillStyle=thG;ctx.fill();
+    ctx.strokeStyle=perf.accent+'40';ctx.lineWidth=1.5*S;ctx.stroke();
+
+    ctx.font=`${Math.round(18*S)}px Inter,sans-serif`;ctx.fillText('🏆',PAD+12*S,cy+32*S);
+    ctx.font=`600 ${Math.round(13*S)}px Inter,sans-serif`;ctx.fillStyle='rgba(255,255,255,.75)';
+    ctx.fillText('Most consistent: '+(th.emoji||'')+' '+th.name,PAD+40*S,cy+22*S);
+    ctx.font=`400 ${Math.round(10*S)}px Inter,sans-serif`;ctx.fillStyle='rgba(255,255,255,.3)';
+    ctx.fillText('Your strongest habit of '+data.year,PAD+40*S,cy+36*S);
+    ctx.font=`700 ${Math.round(16*S)}px 'JetBrains Mono',monospace`;ctx.fillStyle=perf.accent;
+    ctx.textAlign='right';ctx.fillText(th.pct+'%',PAD+thW-14*S,cy+30*S);ctx.textAlign='left';
+    cy+=thH+24*S;
+  }
 
   // ── FOOTER ──
-  cy=H-36*S;
   const quote=SHARE_QUOTES[Math.floor(Math.random()*SHARE_QUOTES.length)];
+
+  // Thin separator
+  ctx.save();
+  const fDiv=ctx.createLinearGradient(PAD,0,W-PAD,0);
+  fDiv.addColorStop(0,'transparent');fDiv.addColorStop(0.5,'rgba(255,255,255,.1)');fDiv.addColorStop(1,'transparent');
+  ctx.strokeStyle=fDiv;ctx.lineWidth=1*S;
+  ctx.beginPath();ctx.moveTo(PAD,H-80*S);ctx.lineTo(W-PAD,H-80*S);ctx.stroke();
+  ctx.restore();
+
   ctx.font=`300 italic ${Math.round(12*S)}px Inter,sans-serif`;
   ctx.fillStyle='rgba(255,255,255,.22)';
   ctx.textAlign='center';
-  ctx.fillText(`"${quote}"`,W/2,cy);
-  ctx.font=`500 ${Math.round(10*S)}px Inter,sans-serif`;
-  ctx.fillStyle='rgba(255,255,255,.15)';
-  ctx.fillText('Built with Ascend',W/2,cy+18*S);
+  ctx.fillText(`"${quote}"`,W/2,H-52*S);
+  ctx.font=`${Math.round(12*S)}px Inter,sans-serif`;ctx.fillStyle='rgba(255,255,255,.15)';
+  ctx.fillText('📔',W/2-42*S,H-26*S);
+  ctx.font=`500 ${Math.round(10*S)}px Inter,sans-serif`;ctx.fillStyle='rgba(255,255,255,.15)';
+  ctx.fillText('Built with Ascend',W/2-18*S,H-26*S);
   ctx.textAlign='left';
 }
 
