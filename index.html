@@ -48,10 +48,19 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-h
 .sb-logo-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;padding-left:32px}
 .sb-section{padding:12px 14px;border-bottom:1px solid rgba(48,54,61,.45)}
 .sb-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:8px}
-.month-nav{display:flex;align-items:center;gap:6px;margin-bottom:8px}
-.month-nav button{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s}
-.month-nav button:hover{background:var(--bg4);border-color:var(--border2)}
-.month-display{flex:1;text-align:center;font-size:12px;font-weight:600;color:var(--text)}
+.month-nav{display:flex;align-items:center;gap:2px;margin-bottom:8px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:4px}
+.month-nav button{background:transparent;border:1px solid transparent;color:var(--text2);border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s,color .15s,transform .1s;flex-shrink:0}
+.month-nav button:hover{background:var(--bg4);border-color:var(--border2);color:var(--text)}
+.month-nav button:active{transform:scale(.88)}
+.month-display-wrap{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0}
+.month-display{font-size:12.5px;font-weight:700;color:var(--text);letter-spacing:-.1px;white-space:nowrap}
+.period-badge{font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:1px 7px;border-radius:8px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;line-height:1.5}
+.period-badge.is-today{background:rgba(57,211,83,.14);color:var(--green);border:1px solid rgba(57,211,83,.28)}
+.period-badge.is-past{background:var(--bg4);color:var(--text3);border:1px solid var(--border2)}
+.period-badge.is-future{background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.25)}
+.back-today-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.22);color:var(--blue);padding:6px 8px;border-radius:7px;font-size:10.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;transition:background .15s,border-color .15s;animation:fadeIn .2s ease}
+.back-today-btn:hover{background:rgba(88,166,255,.14);border-color:rgba(88,166,255,.4)}
+.back-today-btn:active{transform:scale(.97)}
 .year-sel{width:100%;padding:5px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .15s,box-shadow .15s}
 .year-sel:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
 .habit-list{display:flex;flex-direction:column;gap:3px}
@@ -561,6 +570,11 @@ body.compact-mode .checklist-grid{gap:5px}
 
 /* PASSED window: dimmed, greyed out */
 .check-card.tw-passed{opacity:.65}
+
+/* Any day other than the real, live today — past or future, reached via
+   the month/year navigator — is view-only and can't be checked off. */
+.check-card.check-future{opacity:.55;cursor:default}
+.check-card.check-future:active{transform:none}
 .check-card.tw-passed .check-tw-badge{opacity:.5;text-decoration:line-through}
 
 /* done during window: calm green, no pulse */
@@ -609,7 +623,7 @@ body.compact-mode .checklist-grid{gap:5px}
   /* always show edit/delete on touch — no hover */
   .h-acts{display:flex;position:static;flex-shrink:0}
   .ib{padding:5px 8px;font-size:13px;border-radius:6px;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center}
-  .month-nav button{width:36px;height:36px;font-size:16px}
+  .month-nav button{width:34px;height:34px;font-size:15px}
   .add-habit-btn{padding:12px 14px;font-size:13px;border-radius:8px}
   .sb-label{font-size:11px;margin-bottom:10px}
   .settings-section-label{font-size:9px}
@@ -661,8 +675,10 @@ body.compact-mode .checklist-grid{gap:5px}
   .h-name{font-size:14px;font-weight:600}
   .h-acts{display:flex;position:static;flex-shrink:0;gap:6px}
   .ib{padding:6px 10px;font-size:15px;border-radius:8px;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;line-height:1}
-  .month-nav button{width:40px;height:40px;font-size:18px;border-radius:8px}
-  .month-display{font-size:15px}
+  .month-nav button{width:38px;height:38px;font-size:17px;border-radius:7px}
+  .month-display{font-size:14px}
+  .period-badge{font-size:9px;padding:2px 8px}
+  .back-today-btn{padding:8px 10px;font-size:11.5px;border-radius:8px}
   .year-sel{font-size:14px;padding:8px 10px}
   .add-habit-btn{padding:14px 16px;font-size:14px;border-radius:10px;margin:12px 12px}
   .sb-label{font-size:11px;letter-spacing:1px;margin-bottom:12px}
@@ -1283,6 +1299,12 @@ function lbLeaveGroup(){
 
 
 function toggleCheck(hid,d){
+  // Habit tracking is meant to be an honest, in-the-moment record. The
+  // month/year navigator is for browsing past/future days, never editing
+  // them — only the real, live "today" can ever be checked off.
+  const target=new Date(state.year,state.month,d);
+  const today=new Date();today.setHours(0,0,0,0);
+  if(target.getTime()!==today.getTime())return;
   const k=ck(hid,d);
   const wasChecked=!!state.checks[k];
   const newChecks={...state.checks,[k]:!wasChecked};
@@ -1330,6 +1352,10 @@ function nextMonth(){
   let m=state.month+1,y=state.year;
   if(m>11){m=0;y++}
   setState({month:m,year:y});
+}
+function goToToday(){
+  const now=new Date();
+  setState({year:now.getFullYear(),month:now.getMonth()});
 }
 function toggleSection(key){
   setState({collapsedSections:{...state.collapsedSections,[key]:!state.collapsedSections[key]}});
@@ -1404,11 +1430,29 @@ function buildSidebar(){
     ),
     h('div',{className:'sb-section'},
       h('div',{className:'sb-label'},'📅 Period'),
-      h('div',{className:'month-nav'},
-        h('button',{onClick:prevMonth},'‹'),
-        h('div',{className:'month-display'},MONTHS[month]),
-        h('button',{onClick:nextMonth},'›')
-      ),
+      (()=>{
+        const now=new Date();
+        const isCurrentMonth=now.getFullYear()===year&&now.getMonth()===month;
+        const viewedDate=new Date(year,month,1);
+        const curDate=new Date(now.getFullYear(),now.getMonth(),1);
+        const isPast=viewedDate<curDate;
+        const badge=isCurrentMonth
+          ? h('span',{className:'period-badge is-today'},'● Current Month')
+          : isPast
+            ? h('span',{className:'period-badge is-past'},'◀ Past Month')
+            : h('span',{className:'period-badge is-future'},'▶ Upcoming Month');
+        return h('div',{},
+          h('div',{className:'month-nav'},
+            h('button',{onClick:prevMonth,'aria-label':'Previous month'},'‹'),
+            h('div',{className:'month-display-wrap'},
+              h('div',{className:'month-display'},MONTHS[month]),
+              badge
+            ),
+            h('button',{onClick:nextMonth,'aria-label':'Next month'},'›')
+          ),
+          isCurrentMonth?null:h('button',{className:'back-today-btn',onClick:goToToday},'⟲ Back to Today')
+        );
+      })(),
       yearSel
     ),
     h('div',{className:'sb-section',style:{flex:'1'}},
@@ -1508,6 +1552,13 @@ function buildChecklist(){
   const today=new Date();
   const isCur=today.getFullYear()===year&&today.getMonth()===month;
   const targetDay=isCur?today.getDate():daysInMonth(year,month);
+  // Habit tracking should be an honest, in-the-moment record. The
+  // month/year navigator is for *viewing* other days — past or future —
+  // never for editing them after the fact or before they've happened.
+  // Only the real, live "today" is ever checkable.
+  const isRealToday=isCur&&targetDay===today.getDate();
+  const isReadOnlyDay=!isRealToday;
+  const isFutureDay=new Date(year,month,targetDay)>(()=>{const t=new Date();t.setHours(0,0,0,0);return t})();
   const isRealTodayView=isCur&&targetDay===today.getDate();
   // Adaptive Routine only ever swaps habits for the real "today" view —
   // browsing past/future days, or other months, always shows normal habits.
@@ -1519,7 +1570,6 @@ function buildChecklist(){
 
   // The live "do this now" highlight only ever applies to today's real
   // date — never to a past/future day you're just browsing.
-  const isRealToday=isCur&&targetDay===today.getDate();
 
   // Builds one habit card. Identical visuals/behavior to before — only
   // extracted into a helper so it can be reused across the new groups.
@@ -1529,7 +1579,7 @@ function buildChecklist(){
     const st=analysis.find(a=>a.id===hb.id);
     const twActive=isRealToday&&scheduled&&hasTimeWindow(hb)&&isWithinTimeWindow(hb);
     const twPassedQuiet=isRealToday&&scheduled&&hasTimeWindow(hb)&&!done&&isPastTimeWindow(hb);
-    const cardClasses='check-card'+(done?' done':'')+((!scheduled)?' habit-skipped':'')+(twActive?' tw-active':'')+(twPassedQuiet?' tw-passed':'');
+    const cardClasses='check-card'+(done?' done':'')+((!scheduled)?' habit-skipped':'')+(twActive?' tw-active':'')+(twPassedQuiet?' tw-passed':'')+(isReadOnlyDay?' check-future':'');
     const twBadge=scheduled&&hasTimeWindow(hb)
       ? (twActive
           ? h('span',{className:'check-tw-badge'},'⏰ '+timeWindowLabel(hb))
@@ -1542,14 +1592,17 @@ function buildChecklist(){
     const upcomingBadge=!scheduled
       ? h('span',{style:{fontSize:'8px',color:'var(--text3)',flexShrink:'0'}},nextOccurrenceLabel(nextScheduledOccurrence(hb,year,month,targetDay)))
       : null;
+    const futureBadge=isReadOnlyDay
+      ? h('span',{style:{fontSize:'8px',color:'var(--text3)',flexShrink:'0'}},isFutureDay?'🔒 Not yet':'📜 Past record')
+      : null;
     const card=h('div',{className:cardClasses},
       h('div',{className:'check-icon'},done?'✓':(!scheduled?'–':'')),
       h('span',{className:'check-label'},hb.emoji+' '+hb.name),
       twBadge,
       nowBadge,
-      upcomingBadge||(st&&st.streak>1?h('span',{className:'check-streak'},'🔥'+st.streak):null)
+      futureBadge||upcomingBadge||(st&&st.streak>1?h('span',{className:'check-streak'},'🔥'+st.streak):null)
     );
-    if(scheduled) card.addEventListener('click',()=>toggleCheck(hb.id,targetDay));
+    if(scheduled&&!isReadOnlyDay) card.addEventListener('click',()=>toggleCheck(hb.id,targetDay));
     // Pop animation: fire only on the specific habit just checked
     if(done && hb.id===_justCheckedId){
       const icon=card.querySelector('.check-icon');
