@@ -65,12 +65,45 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-h
 .year-sel:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
 .habit-list{display:flex;flex-direction:column;gap:3px}
 .h-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:5px;cursor:default;position:relative;transition:background .15s}
+.h-group-header{display:flex;align-items:center;gap:7px;padding:6px 6px;margin-top:6px;border-radius:5px;cursor:pointer;user-select:none;transition:background .15s}
+.h-group-header:hover{background:var(--bg3)}
+.h-group-arrow{font-size:8px;color:var(--text3);width:10px;text-align:center;flex-shrink:0;transition:color .15s}
+.h-group-header:hover .h-group-arrow{color:var(--text2)}
+.h-group-emoji{font-size:13px;flex-shrink:0}
+.h-group-name{flex:1;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-group-count{font-size:10px;font-weight:600;color:var(--text3);background:var(--bg3);padding:1px 7px;border-radius:9px;flex-shrink:0}
+.h-group-items{padding-left:15px;border-left:1px solid var(--border);margin-left:9px}
+.h-group-block{display:flex;flex-direction:column;border-radius:5px;transition:opacity .15s}
+.h-group-dragging{opacity:.4}
+.h-drag-handle{font-size:11px;color:var(--text3);cursor:grab;flex-shrink:0;line-height:1}
+.h-drag-handle:active{cursor:grabbing}
+.h-item.h-dragging{opacity:.4}
+.h-group-header-over{background:rgba(88,166,255,.12);outline:1px dashed var(--blue)}
+.h-group-empty{font-size:10.5px;color:var(--text3);padding:6px 4px;font-style:italic}
+.h-group-acts{position:relative;display:flex;flex-shrink:0}
+.h-group-menu-btn{font-weight:700;line-height:1}
+.h-group-menu{position:absolute;right:0;top:calc(100% + 3px);background:var(--bg2);border:1px solid var(--border);border-radius:7px;box-shadow:0 6px 18px rgba(0,0,0,.35);display:none;flex-direction:column;min-width:130px;z-index:50;overflow:hidden}
+.h-group-menu.open{display:flex}
+.h-group-menu-item{background:none;border:none;text-align:left;padding:8px 12px;font-size:11.5px;color:var(--text2);cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
+.h-group-menu-item:hover{background:var(--bg3);color:var(--text)}
+.h-group-menu-item.danger:hover{color:#f87171}
+.h-ungrouped-label{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text3);padding:10px 6px 4px}
+.new-group-btn{margin:10px 14px 0;display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:1px dashed var(--border);color:var(--text2);padding:7px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;font-family:'Inter',sans-serif;width:calc(100% - 28px)}
+.new-group-btn:hover{background:var(--bg3);border-color:var(--text3);color:var(--text)}
+.group-field-wrap{margin-bottom:2px}
+.group-select{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12.5px;cursor:pointer;font-family:'Inter',sans-serif}
+.group-select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
+.group-new-row{display:flex;gap:6px;align-items:center}
+.group-new-row input{flex:1;padding:8px 10px;background:var(--bg3);border:1px solid var(--blue);border-radius:6px;color:var(--text);font-size:12.5px;font-family:'Inter',sans-serif}
+.group-new-row input:focus{outline:none}
+.group-new-row .btn{padding:7px 10px;font-size:11px}
 .h-item:hover{background:var(--bg3)}
 .h-emoji{font-size:15px;min-width:20px;text-align:center}
 .h-name{flex:1;font-size:12px;font-weight:500;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .h-acts{display:none;gap:2px;position:absolute;right:4px}
 .h-item:hover .h-acts{display:flex}
 .ib{background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:1px 4px;border-radius:3px;font-size:10px;line-height:1.4;transition:all .15s}
+.ib:hover{background:var(--bg4);border-color:var(--text3);transform:translateY(-1px)}
 .ib:hover{background:var(--bg4);color:var(--text)}
 .add-habit-btn{margin:12px 14px;display:flex;align-items:center;gap:8px;background:var(--green4);border:1px dashed var(--green3);color:var(--green);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s;font-family:'Inter',sans-serif;width:calc(100% - 28px)}
 .ar-sidebar-btn{margin:0 14px 12px;display:flex;align-items:center;gap:8px;background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.22);color:var(--blue);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s;font-family:'Inter',sans-serif;width:calc(100% - 28px)}
@@ -261,12 +294,14 @@ body.compact-mode .checklist-grid{gap:5px}
 
 /* CHECKLIST */
 .checklist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
-.check-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;user-select:none;min-height:48px}
+.check-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;align-items:stretch;gap:3px;cursor:pointer;transition:all .15s;user-select:none;min-height:48px}
+.check-row1{display:flex;align-items:center;gap:10px}
+.check-row2{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-left:30px;justify-content:flex-end}
 .check-card:hover{border-color:var(--border2);background:var(--bg4)}
 .check-card.done{border-color:var(--green3);background:rgba(57,211,83,.06)}
 .check-icon{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;font-size:12px}
 .check-card.done .check-icon{background:var(--green);border-color:var(--green);color:#000}
-.check-label{font-size:13px;font-weight:500;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.check-label{font-size:13px;font-weight:500;color:var(--text2);flex:1;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;word-break:break-word;line-height:1.3}
 .check-card.done .check-label{color:var(--text3);text-decoration:line-through}
 .check-streak{font-size:10px;color:var(--orange);font-weight:700;flex-shrink:0}
 
@@ -771,7 +806,7 @@ body.sidebar-hidden .main-content{margin-left:0}
 .lb-skip-link:hover{color:var(--text2);text-decoration:underline}
 </style>
 </head>
-<body>
+<body class="sidebar-hidden">
 <div id="app"></div>
 <div id="heat-tooltip" class="heat-tooltip" style="display:none"></div>
 <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
@@ -1098,6 +1133,18 @@ function isPastTimeWindow(habit){
 }
 
 // ── STORAGE ────────────────────────────────────────────────────────────────
+// Monotonic unique id generator — Date.now() alone can collide when two
+// habits are created back-to-back (e.g. typing "Study Block 1" then
+// "Study Block 2" and hitting Enter quickly both land in the same
+// millisecond), which silently merges their check data. uid() guarantees
+// every habit gets a distinct id regardless of timing.
+let _uidLast=0;
+function uid(){
+  let n=Date.now();
+  if(n<=_uidLast)n=_uidLast+1;
+  _uidLast=n;
+  return n;
+}
 function load(key,def){try{const v=localStorage.getItem(key);return v?JSON.parse(v):def}catch{return def}}
 function save(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch{}}
 
@@ -1112,11 +1159,20 @@ let state={
   motiv:load('ht2_motiv',{}),
   modal:null,
   editId:null,
-  formName:'',formEmoji:EMOJIS[0],formColor:COLORS[0],formCat:CATS[0],
+  formName:'',formEmoji:EMOJIS[0],formColor:COLORS[0],formCat:'',
   formSchedule:defaultSchedule(),
   formTimeWindow:null,
   collapsedSections:{},
   widgetOrder:load('ht2_widget_order',['checklist','heatmap','radar','analysis','mood']),
+  // Groups that exist independently of habits (e.g. a freshly-created
+  // empty group with nothing assigned to it yet). Habits' own .cat field
+  // remains the source of truth for which group they're displayed under;
+  // this list just lets a group persist on screen with zero habits.
+  customGroups:load('ht2_custom_groups',[]),
+  // Explicit drag-set order for group sections in the sidebar. Groups not
+  // yet present here (new ones) fall back to first-appearance order and
+  // get folded in automatically once the user drags anything.
+  groupOrder:load('ht2_group_order',[]),
 
   // ── LEADERBOARD (local identity only — never store habit data here) ──
   lbUsername:load('ht2_lb_username',null),
@@ -1142,6 +1198,8 @@ function saveAll(){
   save('ht2_mood',state.mood);
   save('ht2_motiv',state.motiv);
   save('ht2_widget_order',state.widgetOrder);
+  save('ht2_custom_groups',state.customGroups);
+  save('ht2_group_order',state.groupOrder);
   // Adaptive Routine persistence
   save('ht2_ar_enabled', state.arEnabled);
   save('ht2_ar_routines', state.arRoutines);
@@ -1319,14 +1377,14 @@ function toggleCheck(hid,d){
 function setMoodVal(d,val){setState({mood:{...state.mood,[mk(d)]:val}})}
 function setMotivVal(d,val){setState({motiv:{...state.motiv,[mk(d)]:val}})}
 function deleteHabit(id){if(confirm('Delete this habit?'))setState({habits:state.habits.filter(h=>h.id!==id)})}
-function openAdd(){playSound('modal_open');setState({modal:'add',formName:'',formEmoji:EMOJIS[0],formColor:COLORS[0],formCat:CATS[0],formSchedule:defaultSchedule(),formTimeWindow:null})}
-function openEdit(h){playSound('modal_open');setState({modal:'edit',editId:h.id,formName:h.name,formEmoji:h.emoji,formColor:h.color,formCat:h.cat,formSchedule:h.schedule||defaultSchedule(),formTimeWindow:h.timeWindow||null})}
+function openAdd(){playSound('modal_open');setState({modal:'add',formName:'',formEmoji:EMOJIS[0],formColor:COLORS[0],formCat:'',formSchedule:defaultSchedule(),formTimeWindow:null})}
+function openEdit(h){playSound('modal_open');setState({modal:'edit',editId:h.id,formName:h.name,formEmoji:h.emoji,formColor:h.color,formCat:h.cat||'',formSchedule:h.schedule||defaultSchedule(),formTimeWindow:h.timeWindow||null})}
 function closeModal(){playSound('modal_close');setState({modal:null,editId:null})}
 function saveHabit(){
   if(!state.formName.trim())return;
   playSound('add');
   if(state.modal==='add'){
-    setState({habits:[...state.habits,{id:Date.now(),name:state.formName.trim(),emoji:state.formEmoji,color:state.formColor,cat:state.formCat,schedule:state.formSchedule,timeWindow:state.formTimeWindow}],modal:null});
+    setState({habits:[...state.habits,{id:uid(),name:state.formName.trim(),emoji:state.formEmoji,color:state.formColor,cat:state.formCat,schedule:state.formSchedule,timeWindow:state.formTimeWindow}],modal:null});
   } else {
     setState({habits:state.habits.map(h=>h.id===state.editId?{...h,name:state.formName.trim(),emoji:state.formEmoji,color:state.formColor,cat:state.formCat,schedule:state.formSchedule,timeWindow:state.formTimeWindow}:h),modal:null,editId:null});
   }
@@ -1402,6 +1460,227 @@ function render(){
   }
 }
 
+// Builds one draggable habit row used inside the grouped sidebar list.
+// Dragging and dropping commits a brand-new order straight back into
+// state.habits, so the sidebar always matches the order you set —
+// nothing here ever re-sorts habits automatically.
+function buildHabitRow(hb,listEl){
+  const row=h('div',{className:'h-item',draggable:'true'},
+    h('span',{className:'h-drag-handle',title:'Drag to reorder'},'⠿'),
+    h('span',{className:'h-emoji'},hb.emoji),
+    h('div',{style:{flex:'1',overflow:'hidden'}},
+      h('div',{className:'h-name'},hb.name),
+      h('div',{className:'sched-tag',style:{marginTop:'2px',display:'inline-block'}},scheduleLabel(hb))
+    ),
+    h('div',{className:'h-acts'},
+      h('button',{className:'ib',onClick:()=>openEdit(hb)},'✏️'),
+      h('button',{className:'ib',onClick:()=>deleteHabit(hb.id)},'🗑')
+    )
+  );
+  row.dataset.habitId=hb.id;
+  row.addEventListener('dragstart',e=>{
+    row.classList.add('h-dragging');
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/habit-id',String(hb.id));
+  });
+  row.addEventListener('dragend',()=>{
+    row.classList.remove('h-dragging');
+    const ids=[...listEl.querySelectorAll('.h-item')].map(el=>+el.dataset.habitId);
+    const reordered=ids.map(id=>state.habits.find(x=>x.id===id)).filter(Boolean);
+    state.habits.forEach(x=>{if(!reordered.includes(x))reordered.push(x);}); // safety net
+    setState({habits:reordered});
+  });
+  row.addEventListener('dragover',e=>{
+    e.preventDefault();
+    e.dataTransfer.dropEffect='move';
+    const dragging=listEl.querySelector('.h-dragging');
+    if(dragging&&dragging!==row){
+      const rect=row.getBoundingClientRect();
+      const mid=rect.top+rect.height/2;
+      if(e.clientY<mid)row.parentNode.insertBefore(dragging,row);
+      else row.parentNode.insertBefore(dragging,row.nextSibling);
+    }
+  });
+  return row;
+}
+
+// Renames a group: every habit currently in oldName moves to newName, and
+// if it was a still-empty customGroups entry that gets renamed too.
+function renameGroup(oldName,newName){
+  newName=newName.trim();
+  if(!newName||newName===oldName)return;
+  const clash=state.customGroups.includes(newName)||state.habits.some(hb=>(hb.cat||'').trim()===newName);
+  if(clash){alert('A group with that name already exists.');return;}
+  setState({
+    habits:state.habits.map(hb=>(hb.cat||'').trim()===oldName?{...hb,cat:newName}:hb),
+    customGroups:state.customGroups.map(g=>g===oldName?newName:g),
+    groupOrder:state.groupOrder.map(g=>g===oldName?newName:g),
+    collapsedSections:{...state.collapsedSections,['grp:'+newName]:state.collapsedSections['grp:'+oldName]}
+  });
+}
+// Deletes a group. Habits inside it are NOT deleted — they're moved to
+// "No Group" so nobody loses tracked data just because a group goes away.
+function deleteGroup(name){
+  const count=state.habits.filter(hb=>(hb.cat||'').trim()===name).length;
+  const msg=count
+    ? `Delete group "${name}"? Its ${count} habit${count>1?'s':''} will move to "No Group" (not deleted).`
+    : `Delete empty group "${name}"?`;
+  if(!confirm(msg))return;
+  setState({
+    habits:state.habits.map(hb=>(hb.cat||'').trim()===name?{...hb,cat:''}:hb),
+    customGroups:state.customGroups.filter(g=>g!==name),
+    groupOrder:state.groupOrder.filter(g=>g!==name)
+  });
+}
+// Creates a new, initially-empty group so it shows up in the sidebar
+// ready to receive habits (via the habit modal's Group field, or drag).
+function createGroup(){
+  const name=prompt('New group name:');
+  if(!name||!name.trim())return;
+  const trimmed=name.trim();
+  const exists=state.customGroups.includes(trimmed)||state.habits.some(hb=>(hb.cat||'').trim()===trimmed);
+  if(exists){alert('A group with that name already exists.');return;}
+  setState({customGroups:[...state.customGroups,trimmed],collapsedSections:{...state.collapsedSections,['grp:'+trimmed]:false}});
+}
+// Small ⋮ dropdown menu used on each group header. Only one open at a time;
+// clicking anywhere outside closes whatever's open.
+function toggleGroupMenu(menu){
+  const wasOpen=menu.classList.contains('open');
+  document.querySelectorAll('.h-group-menu.open').forEach(m=>m.classList.remove('open'));
+  if(!wasOpen)menu.classList.add('open');
+}
+document.addEventListener('click',()=>{document.querySelectorAll('.h-group-menu.open').forEach(m=>m.classList.remove('open'));});
+
+// Groups habits by their (free-text) group field into collapsed-by-default
+// sections, e.g. "📚 Self Study" containing every Study Block habit.
+// Groups are ordered by first appearance, so the sidebar's overall order
+// is still driven entirely by manual drag reordering, never alphabetised
+// or otherwise auto-sorted. Empty groups created via "+ New Group" are
+// appended at the end until they pick up a habit. Habits with no group
+// (cat is empty/whitespace) are NOT folded into a fake "Other" group —
+// they're collected separately and rendered as a flat list underneath
+// every named group, per the "ungrouped habits at the bottom" design.
+function buildHabitListEl(habits){
+  const groupKey=hb=>(hb.cat&&hb.cat.trim())||null;
+  const groupOrder=[],groupMap={};
+  const ungrouped=[];
+  habits.forEach(hb=>{
+    const k=groupKey(hb);
+    if(k===null){ungrouped.push(hb);return;}
+    if(!groupMap[k]){groupMap[k]=[];groupOrder.push(k);}
+    groupMap[k].push(hb);
+  });
+  state.customGroups.forEach(g=>{
+    if(!groupMap[g]){groupMap[g]=[];groupOrder.push(g);}
+  });
+
+  const listEl=h('div',{className:'habit-list'});
+
+  // Blend the persisted drag order in with whatever groups actually exist
+  // right now: known groups keep their dragged position, brand-new groups
+  // (just created, or a habit's first-ever custom category) get appended
+  // at the end in discovery order until the user drags them somewhere.
+  const finalGroupOrder=[
+    ...state.groupOrder.filter(g=>groupOrder.includes(g)),
+    ...groupOrder.filter(g=>!state.groupOrder.includes(g))
+  ];
+
+  finalGroupOrder.forEach(gname=>{
+    const items=groupMap[gname];
+    const collapsed=state.collapsedSections['grp:'+gname]!==false; // collapsed by default
+    const menu=h('div',{className:'h-group-menu'},
+      h('button',{className:'h-group-menu-item',onClick:e=>{e.stopPropagation();menu.classList.remove('open');const nn=prompt('Rename group:',gname);if(nn)renameGroup(gname,nn);}},'✏️  Rename Group'),
+      h('button',{className:'h-group-menu-item danger',onClick:e=>{e.stopPropagation();menu.classList.remove('open');deleteGroup(gname);}},'🗑  Delete Group')
+    );
+    const menuBtn=h('button',{className:'ib h-group-menu-btn',title:'Group options',onClick:e=>{e.stopPropagation();toggleGroupMenu(menu);}},'⋮');
+    const header=h('div',{className:'h-group-header',draggable:'true'},
+      h('span',{className:'h-drag-handle',title:'Drag to reorder group'},'⠿'),
+      h('span',{className:'h-group-arrow',onClick:()=>toggleSection('grp:'+gname)},collapsed?'▶':'▼'),
+      h('span',{className:'h-group-emoji',onClick:()=>toggleSection('grp:'+gname)},items[0]?items[0].emoji:'🗂'),
+      h('span',{className:'h-group-name',onClick:()=>toggleSection('grp:'+gname)},gname),
+      h('span',{className:'h-group-count',onClick:()=>toggleSection('grp:'+gname)},String(items.length)),
+      h('div',{className:'h-group-acts'},menuBtn,menu)
+    );
+    // Wraps the header + its (possibly collapsed) items into one node so the
+    // whole group — not just the header — moves together when dragged.
+    const block=h('div',{className:'h-group-block'});
+    block.dataset.group=gname;
+    // Dragging the group header itself reorders entire groups, distinct
+    // from dragging a habit row (which carries 'text/habit-id' instead).
+    header.addEventListener('dragstart',e=>{
+      e.stopPropagation();
+      block.classList.add('h-group-dragging');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/group-name',gname);
+    });
+    header.addEventListener('dragend',e=>{
+      e.stopPropagation();
+      block.classList.remove('h-group-dragging');
+      const newOrder=[...listEl.querySelectorAll('.h-group-block')].map(b=>b.dataset.group);
+      setState({groupOrder:newOrder});
+    });
+    block.addEventListener('dragover',e=>{
+      if(!e.dataTransfer.types.includes('text/group-name'))return; // a habit row, not a group — let header's own handler deal with it
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      const draggingBlock=listEl.querySelector('.h-group-dragging');
+      if(draggingBlock&&draggingBlock!==block){
+        const rect=block.getBoundingClientRect();
+        const mid=rect.top+rect.height/2;
+        if(e.clientY<mid)block.parentNode.insertBefore(draggingBlock,block);
+        else block.parentNode.insertBefore(draggingBlock,block.nextSibling);
+      }
+    });
+    // Dropping a dragged habit row onto a header moves it into this group
+    header.addEventListener('dragover',e=>{
+      if(!e.dataTransfer.types.includes('text/habit-id'))return; // ignore group-reorder drags here
+      e.preventDefault();
+      header.classList.add('h-group-header-over');
+    });
+    header.addEventListener('dragleave',()=>header.classList.remove('h-group-header-over'));
+    header.addEventListener('drop',e=>{
+      if(!e.dataTransfer.types.includes('text/habit-id'))return;
+      e.preventDefault();
+      header.classList.remove('h-group-header-over');
+      const draggedId=+e.dataTransfer.getData('text/habit-id');
+      if(!draggedId)return;
+      setState({habits:state.habits.map(hb=>hb.id===draggedId?{...hb,cat:gname}:hb),collapsedSections:{...state.collapsedSections,['grp:'+gname]:false}});
+    });
+    block.appendChild(header);
+    if(!collapsed){
+      const itemsWrap=h('div',{className:'h-group-items'});
+      if(!items.length){
+        itemsWrap.appendChild(h('div',{className:'h-group-empty'},'No habits yet — add one or drag a habit here'));
+      }
+      items.forEach(hb=>itemsWrap.appendChild(buildHabitRow(hb,itemsWrap)));
+      block.appendChild(itemsWrap);
+    }
+    listEl.appendChild(block);
+  });
+
+  // Ungrouped habits — flat list below every named group, with a light
+  // label instead of a full header (no rename/delete menu, since "no
+  // group" isn't itself a group). Still a drop target so habits can be
+  // dragged out of a group back to ungrouped.
+  if(ungrouped.length){
+    const ungroupedWrap=h('div',{className:'h-group-items',style:{borderLeft:'none',marginLeft:'0',paddingLeft:'0'}});
+    ungroupedWrap.addEventListener('dragover',e=>{e.preventDefault();});
+    ungroupedWrap.addEventListener('drop',e=>{
+      e.preventDefault();
+      const draggedId=+e.dataTransfer.getData('text/habit-id');
+      if(!draggedId)return;
+      setState({habits:state.habits.map(hb=>hb.id===draggedId?{...hb,cat:''}:hb)});
+    });
+    listEl.appendChild(h('div',{className:'h-ungrouped-label'},'Ungrouped'));
+    ungrouped.forEach(hb=>ungroupedWrap.appendChild(buildHabitRow(hb,ungroupedWrap)));
+    listEl.appendChild(ungroupedWrap);
+  }
+
+  listEl.appendChild(h('button',{className:'new-group-btn',onClick:createGroup},'➕  New Category'));
+
+  return listEl;
+}
+
 // ── SIDEBAR ────────────────────────────────────────────────────────────────
 function buildSidebar(){
   const {year,month,habits}=state;
@@ -1457,19 +1736,7 @@ function buildSidebar(){
     ),
     h('div',{className:'sb-section',style:{flex:'1'}},
       h('div',{className:'sb-label'},'✦ My Habits'),
-      h('div',{className:'habit-list'},
-        ...habits.map(hb=>h('div',{className:'h-item'},
-          h('span',{className:'h-emoji'},hb.emoji),
-          h('div',{style:{flex:'1',overflow:'hidden'}},
-            h('div',{className:'h-name'},hb.name),
-            h('div',{className:'sched-tag',style:{marginTop:'2px',display:'inline-block'}},scheduleLabel(hb))
-          ),
-          h('div',{className:'h-acts'},
-            h('button',{className:'ib',onClick:()=>openEdit(hb)},'✏️'),
-            h('button',{className:'ib',onClick:()=>deleteHabit(hb.id)},'🗑')
-          )
-        ))
-      )
+      buildHabitListEl(habits)
     ),
     h('button',{className:'add-habit-btn',onClick:openAdd},'＋  Add New Habit'),
     buildArSidebarButton(),
@@ -1547,6 +1814,32 @@ function nextOccurrenceLabel(occ){
   return MONTHS_SHORT[occ.date.getMonth()]+' '+occ.date.getDate();
 }
 
+// Maps habit id -> position in the sidebar's drag-arranged order (groups
+// in their dragged order, habits within a group in their dragged order,
+// ungrouped habits last). Used to make the dashboard checklist match
+// whatever arrangement the user set up in the sidebar.
+function sidebarOrderIndex(){
+  const groupKey=hb=>(hb.cat&&hb.cat.trim())||null;
+  const groupOrder=[],groupMap={};
+  const ungrouped=[];
+  state.habits.forEach(hb=>{
+    const k=groupKey(hb);
+    if(k===null){ungrouped.push(hb);return;}
+    if(!groupMap[k]){groupMap[k]=[];groupOrder.push(k);}
+    groupMap[k].push(hb);
+  });
+  const finalGroupOrder=[
+    ...state.groupOrder.filter(g=>groupOrder.includes(g)),
+    ...groupOrder.filter(g=>!state.groupOrder.includes(g))
+  ];
+  const ordered=[];
+  finalGroupOrder.forEach(g=>ordered.push(...groupMap[g]));
+  ordered.push(...ungrouped);
+  const idx=new Map();
+  ordered.forEach((hb,i)=>idx.set(hb.id,i));
+  return idx;
+}
+
 function buildChecklist(){
   const {year,month,checks}=state;
   const today=new Date();
@@ -1595,12 +1888,13 @@ function buildChecklist(){
     const futureBadge=isReadOnlyDay
       ? h('span',{style:{fontSize:'8px',color:'var(--text3)',flexShrink:'0'}},isFutureDay?'🔒 Not yet':'📜 Past record')
       : null;
+    const row2Children=[twBadge,nowBadge,futureBadge||upcomingBadge||(st&&st.streak>1?h('span',{className:'check-streak'},'🔥'+st.streak):null)].filter(Boolean);
     const card=h('div',{className:cardClasses},
-      h('div',{className:'check-icon'},done?'✓':(!scheduled?'–':'')),
-      h('span',{className:'check-label'},hb.emoji+' '+hb.name),
-      twBadge,
-      nowBadge,
-      futureBadge||upcomingBadge||(st&&st.streak>1?h('span',{className:'check-streak'},'🔥'+st.streak):null)
+      h('div',{className:'check-row1'},
+        h('div',{className:'check-icon'},done?'✓':(!scheduled?'–':'')),
+        h('span',{className:'check-label'},hb.emoji+' '+hb.name)
+      ),
+      row2Children.length?h('div',{className:'check-row2'},...row2Children):null
     );
     if(scheduled&&!isReadOnlyDay) card.addEventListener('click',()=>toggleCheck(hb.id,targetDay));
     // Pop animation: fire only on the specific habit just checked
@@ -1624,21 +1918,14 @@ function buildChecklist(){
     else inactiveHabits.push(hb);
   });
 
-  // ── Sort Today's Habits: in-window > upcoming-window-today > incomplete > done ──
-  function todayPriority(hb){
-    const k=ck(hb.id,targetDay);
-    const done=!!checks[k];
-    const inWindow=isRealToday&&hasTimeWindow(hb)&&isWithinTimeWindow(hb);
-    const upcomingWindowToday=isRealToday&&hasTimeWindow(hb)&&!inWindow&&!isPastTimeWindow(hb)&&!done;
-    if(inWindow)return 0;
-    if(upcomingWindowToday)return 1;
-    if(!done)return 2;
-    return 3; // completed
-  }
-  const sortedToday=[...todayHabits].sort((a,b)=>todayPriority(a)-todayPriority(b));
-
-  // Upcoming sorted by nearest occurrence first
-  const sortedUpcoming=[...upcomingHabits].sort((a,b)=>a.occ.offset-b.occ.offset);
+  // Dashboard now mirrors whatever order/grouping you set up in the
+  // sidebar (drag groups, drag habits within a group) instead of
+  // re-sorting habits by its own logic.
+  const orderIdx=sidebarOrderIndex();
+  const byOrder=(x,y)=>(orderIdx.get(x)??0)-(orderIdx.get(y)??0);
+  const sortedToday=[...todayHabits].sort((a,b)=>byOrder(a.id,b.id));
+  const sortedUpcoming=[...upcomingHabits].sort((a,b)=>byOrder(a.hb.id,b.hb.id));
+  inactiveHabits.sort((a,b)=>byOrder(a.id,b.id));
 
   const todayGrid=h('div',{className:'checklist-grid'},
     ...sortedToday.map(hb=>buildCard(hb,true))
@@ -1823,25 +2110,51 @@ function buildRadar(){
   const {habits}=state;
   const collapsed=state.collapsedSections['radar'];
 
-  const analysis=habits.map(h=>({...h,...habitStats(h)}));
-  if(!analysis.length){
+  if(!habits.length){
     return h('div',{className:'card widget'},
       h('div',{className:'card-title'},h('span',{className:'card-title-icon'},'🕸'),'Performance Radar'),
       h('div',{style:{textAlign:'center',color:'var(--text3)',fontSize:'11px',padding:'20px'}},'Add habits to see radar chart')
     );
   }
 
-  // Take up to 8 habits for radar axes
-  const axes=analysis.slice(0,8);
+  // Radar axes = groups, not individual habits. A group's pct is the
+  // weighted average across all its habits' scheduled/done days this
+  // month, so the chart stays readable and meaningful no matter how
+  // many habits exist within a group.
+  // Habits with a real group get bucketed together (one axis per group).
+  // Ungrouped habits each get their OWN axis, keyed by habit id so two
+  // ungrouped habits never collapse into a shared "Other" blob.
+  const groupsMap={};
+  habits.forEach(hb=>{
+    const k=(hb.cat&&hb.cat.trim())||('__ungrouped__'+hb.id);
+    if(!groupsMap[k])groupsMap[k]={name:(hb.cat&&hb.cat.trim())||hb.name,habits:[]};
+    groupsMap[k].habits.push(hb);
+  });
+  const axes=Object.values(groupsMap).map(g=>{
+    const stats=g.habits.map(habitStats);
+    const scheduledDays=stats.reduce((s,x)=>s+x.scheduledDays,0);
+    const done=stats.reduce((s,x)=>s+x.done,0);
+    return{
+      name:g.name,
+      emoji:g.habits[0].emoji,
+      color:g.habits[0].color,
+      pct:scheduledDays?Math.round(done/scheduledDays*100):0
+    };
+  });
+  const overallPct=totalStats().pct;
   const n=axes.length;
-  const cx=160,cy=160,R=120;
+  // Scale the canvas up as more habits are added so labels keep their
+  // breathing room instead of overlapping each other.
+  const VB=n>8?320+(n-8)*18:320;
+  const cx=VB/2,cy=VB/2,R=VB/2-80;
   const rings=5; // concentric rings
+  const labelFontSize=n>16?9:n>12?10:11;
 
   const svgNS='http://www.w3.org/2000/svg';
   const svg=document.createElementNS(svgNS,'svg');
-  svg.setAttribute('viewBox','0 0 320 320');
+  svg.setAttribute('viewBox',`0 0 ${VB} ${VB}`);
   svg.setAttribute('width','100%');
-  svg.setAttribute('style','max-width:320px;overflow:visible');
+  svg.setAttribute('style',`max-width:${Math.max(320,VB)}px;overflow:visible`);
   svg.setAttribute('class','radar-svg');
 
   // Helper: angle for axis i (start top, clockwise)
@@ -1922,15 +2235,15 @@ function buildRadar(){
     const anchor=Math.abs(Math.cos(a))<0.1?'middle':Math.cos(a)>0?'start':'end';
     const labelText=document.createElementNS(svgNS,'text');
     labelText.setAttribute('x',lx);labelText.setAttribute('y',ly+4);
-    labelText.setAttribute('fill','#8b949e');labelText.setAttribute('font-size','11');
+    labelText.setAttribute('fill','#8b949e');labelText.setAttribute('font-size',String(labelFontSize));
     labelText.setAttribute('text-anchor',anchor);
     labelText.setAttribute('font-family','Inter,sans-serif');
     labelText.setAttribute('font-weight','500');
-    labelText.textContent=hab.emoji+' '+hab.pct+'%';
+    labelText.textContent=hab.emoji+' '+hab.name+' '+hab.pct+'%';
     svg.appendChild(labelText);
   });
 
-  // Center dot
+  // Small plain center dot — keeps the chart clean, no overlay clutter
   const cDot=document.createElementNS(svgNS,'circle');
   cDot.setAttribute('cx',cx);cDot.setAttribute('cy',cy);cDot.setAttribute('r','3');
   cDot.setAttribute('fill','#39d353');
@@ -1944,10 +2257,7 @@ function buildRadar(){
       'Performance Radar',
       toggleBtn
     ),
-    collapsed?null:h('div',{className:'radar-container'},
-      svg,
-      h('div',{style:{fontSize:'9px',color:'var(--text3)',textAlign:'center'}},'Each axis = habit completion % this month')
-    )
+    collapsed?null:h('div',{className:'radar-container'},svg)
   );
 }
 
@@ -1965,7 +2275,11 @@ function buildDailyProgress(){
 
   if(!collapsed){
     const scrollWrap=document.createElement('div');
-    scrollWrap.style.cssText='max-height:200px;overflow-y:auto;padding-right:4px;scroll-behavior:smooth';
+    // scroll-behavior intentionally left as 'auto' (not 'smooth') — this
+    // card rebuilds from scratch on every setState() (e.g. every habit
+    // toggle), so a smooth scroll would re-animate on every single click
+    // instead of just being on today's row.
+    scrollWrap.style.cssText='max-height:200px;overflow-y:auto;padding-right:4px;scroll-behavior:auto';
     let todayRow=null;
 
     allDays.forEach(d=>{
@@ -2607,10 +2921,60 @@ function buildModal(){
   nameInput.addEventListener('input',e=>state.formName=e.target.value);
   nameInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveHabit();if(e.key==='Escape')closeModal()});
 
-  const catSel=h('select',{},
-    ...CATS.map(c=>Object.assign(document.createElement('option'),{value:c,textContent:c,selected:c===state.formCat}))
-  );
-  catSel.addEventListener('change',e=>state.formCat=e.target.value);
+  // Group field — a dropdown of "No Group" / every existing group name /
+  // "+ Create New Group…". Picking "create new" swaps the select for an
+  // inline text input (Add/Cancel) without closing the modal; confirming
+  // adds the group to customGroups and immediately assigns this habit to
+  // it. This is the single source of group assignment for both Add and
+  // Edit — moving a habit to another group, or back to "No Group", is
+  // just picking a different option here.
+  const groupWrap=document.createElement('div');
+  groupWrap.className='group-field-wrap';
+
+  function allGroupNames(){
+    return [...new Set([...state.customGroups,...state.habits.map(hb=>hb.cat).filter(g=>g&&g.trim())])];
+  }
+  function buildGroupField(){
+    groupWrap.innerHTML='';
+    const sel=h('select',{className:'group-select'});
+    sel.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:'— No Group —'}));
+    allGroupNames().forEach(g=>{
+      sel.appendChild(Object.assign(document.createElement('option'),{value:g,textContent:g}));
+    });
+    sel.appendChild(Object.assign(document.createElement('option'),{value:'__new__',textContent:'➕ Create New Group…'}));
+    sel.value=allGroupNames().includes(state.formCat)?state.formCat:'';
+    sel.addEventListener('change',e=>{
+      if(e.target.value==='__new__'){buildGroupCreateRow();}
+      else{state.formCat=e.target.value;}
+    });
+    groupWrap.appendChild(sel);
+  }
+  function buildGroupCreateRow(){
+    groupWrap.innerHTML='';
+    const inp=h('input',{type:'text',placeholder:'New group name'});
+    const addBtn=h('button',{type:'button',className:'btn btn-p'},'Add');
+    const cancelBtn=h('button',{type:'button',className:'btn btn-s'},'Cancel');
+    function confirmNewGroup(){
+      const name=inp.value.trim();
+      if(!name)return;
+      if(state.customGroups.includes(name)||state.habits.some(hb=>(hb.cat||'').trim()===name)){
+        if(name!==state.formCat){state.formCat=name;buildGroupField();}
+        return;
+      }
+      state.customGroups=[...state.customGroups,name];
+      state.formCat=name;
+      buildGroupField();
+    }
+    addBtn.addEventListener('click',confirmNewGroup);
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){e.preventDefault();confirmNewGroup();}
+      if(e.key==='Escape'){e.preventDefault();buildGroupField();}
+    });
+    cancelBtn.addEventListener('click',()=>buildGroupField());
+    groupWrap.appendChild(h('div',{className:'group-new-row'},inp,addBtn,cancelBtn));
+    setTimeout(()=>inp.focus(),0);
+  }
+  buildGroupField();
 
   // ── EMOJI GRID — no render(), update in place ──────────────────────────
   const emojiGrid=h('div',{className:'eg'},
@@ -2775,7 +3139,7 @@ function buildModal(){
   const modal=h('div',{className:'modal'},
     h('h3',null,isEdit?'✏️ Edit Habit':'📝 New Habit'),
     h('label',null,'Habit Name'),nameInput,
-    h('label',null,'Category'),catSel,
+    h('label',null,'Group'),groupWrap,
     h('label',null,'Emoji'),emojiGrid,
     h('label',null,'Color'),colorRow,
     h('label',null,'Schedule'),
@@ -3193,7 +3557,7 @@ function arWizardStep4(){
   function arWizardAddHabit(){
     const nm=(arState.newHabitDraft.name||'').trim();
     if(!nm)return;
-    const nh={id:Date.now()+Math.floor(Math.random()*1000),name:nm,emoji:arState.newHabitDraft.emoji,color:COLORS[0],_arRoutineOnly:true,schedule:{type:'daily'},cat:'Other'};
+    const nh={id:uid(),name:nm,emoji:arState.newHabitDraft.emoji,color:COLORS[0],_arRoutineOnly:true,schedule:{type:'daily'},cat:'Other'};
     arState.form.newHabits=[...(arState.form.newHabits||[]),nh];
     arState.newHabitDraft={name:'',emoji:'✨'};
     arRender();
@@ -3285,7 +3649,7 @@ function arPageWizard(){
     const name=(arState.form.name||'').trim();
     if(!name)return;
     const routine={
-      id: isEdit&&arState.editId ? arState.editId : Date.now(),
+      id: isEdit&&arState.editId ? arState.editId : uid(),
       name,
       hiddenIds: arState.form.hiddenIds||[],
       extraHabitIds: arState.form.extraHabitIds||[],
