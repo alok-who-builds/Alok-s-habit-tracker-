@@ -2,11 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <title>📔 Ascend — Build the life you're proud of</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none;touch-action:manipulation}
+/* Buttons/links/inputs don't inherit the page font or get app-like touch
+   behaviour by default — without this, any button whose class forgets to
+   set font-family falls back to the OS UI font, and every tap on mobile
+   gets a 300ms delay + a flash of the browser's default tap-highlight
+   colour, both of which read as "website" rather than "app". */
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button,a{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;touch-action:manipulation}
+button{touch-action:manipulation}
+button:active{transform:scale(.96)}
+img,svg{-webkit-user-drag:none;user-drag:none}
+::selection{background:var(--blue2);color:#fff}
 :root{
   /* Dark theme */
   --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
@@ -39,8 +52,8 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-h
 .month-nav button{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .month-nav button:hover{background:var(--bg4);border-color:var(--border2)}
 .month-display{flex:1;text-align:center;font-size:12px;font-weight:600;color:var(--text)}
-.year-sel{width:100%;padding:5px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif}
-.year-sel:focus{outline:none;border-color:var(--blue)}
+.year-sel{width:100%;padding:5px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .15s,box-shadow .15s}
+.year-sel:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
 .habit-list{display:flex;flex-direction:column;gap:3px}
 .h-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:5px;cursor:default;position:relative;transition:background .15s}
 .h-item:hover{background:var(--bg3)}
@@ -51,6 +64,10 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-h
 .ib{background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:1px 4px;border-radius:3px;font-size:10px;line-height:1.4;transition:all .15s}
 .ib:hover{background:var(--bg4);color:var(--text)}
 .add-habit-btn{margin:12px 14px;display:flex;align-items:center;gap:8px;background:var(--green4);border:1px dashed var(--green3);color:var(--green);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s;font-family:'Inter',sans-serif;width:calc(100% - 28px)}
+.ar-sidebar-btn{margin:0 14px 12px;display:flex;align-items:center;gap:8px;background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.22);color:var(--blue);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s;font-family:'Inter',sans-serif;width:calc(100% - 28px)}
+.ar-sidebar-btn:hover{background:rgba(88,166,255,.14);border-color:rgba(88,166,255,.4)}
+.ar-sidebar-btn.ar-active{background:rgba(88,166,255,.16);border-color:var(--blue)}
+.ar-sidebar-status{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.3px}
 .add-habit-btn:hover{background:var(--green3);border-style:solid}
 
 .reset-modal-legacy{display:none}
@@ -88,8 +105,8 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-h
 .toggle-sw input:checked+.toggle-track::after{transform:translateX(14px)}
 
 /* Compact select in settings */
-.setting-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:10px;padding:3px 6px;border-radius:4px;font-family:'Inter',sans-serif;cursor:pointer;max-width:90px}
-.setting-select:focus{outline:none;border-color:var(--blue)}
+.setting-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:10px;padding:3px 6px;border-radius:4px;font-family:'Inter',sans-serif;cursor:pointer;max-width:90px;transition:border-color .15s,box-shadow .15s}
+.setting-select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
 
 /* Reset section in drawer */
 .drawer-reset-opts{display:flex;flex-direction:column;gap:6px;margin-top:2px}
@@ -403,7 +420,7 @@ body.compact-mode .checklist-grid{gap:5px}
 }
 
 /* ── PWA INSTALL PROMPT ── */
-#pwa-prompt{position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:0 16px 16px;pointer-events:none;display:flex;justify-content:center}
+#pwa-prompt{position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:0 16px calc(16px + env(safe-area-inset-bottom));pointer-events:none;display:flex;justify-content:center}
 #pwa-prompt.show{pointer-events:all}
 .pwa-card{background:var(--bg2);border:1px solid var(--border2);border-radius:18px 18px 14px 14px;padding:18px 20px 16px;width:100%;max-width:420px;box-shadow:0 -4px 40px rgba(0,0,0,.55),0 8px 32px rgba(0,0,0,.4);transform:translateY(120%);transition:transform .4s cubic-bezier(.34,1.4,.64,1);display:flex;flex-direction:column;gap:12px}
 #pwa-prompt.show .pwa-card{transform:translateY(0)}
@@ -422,12 +439,31 @@ body.compact-mode .checklist-grid{gap:5px}
 /* iOS tooltip style */
 .pwa-ios-arrow{text-align:center;font-size:11px;color:var(--text3);padding:2px 0;display:flex;align-items:center;justify-content:center;gap:6px}
 /* update banner */
-#pwa-update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(90deg,#1f6feb,#9b5de5);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;transform:translateY(-100%);transition:transform .3s ease;box-shadow:0 2px 12px rgba(31,111,235,.4)}
+#pwa-update-bar{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(90deg,#1f6feb,#9b5de5);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;transform:translateY(-100%);transition:transform .3s ease;box-shadow:0 2px 12px rgba(31,111,235,.4)}
 #pwa-update-bar.show{transform:translateY(0)}
 #pwa-update-bar button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
 #pwa-update-bar button:hover{background:rgba(255,255,255,.35)}
 #pwa-update-dismiss{background:none!important;border:none!important;font-size:16px;padding:2px 6px!important;opacity:.7}
 #pwa-update-dismiss:hover{opacity:1;background:none!important}
+
+/* ── VERSION UPDATE POPUP ── */
+#update-modal-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:16px;opacity:0;transition:opacity .25s ease}
+#update-modal-overlay.show{display:flex;opacity:1}
+.update-card{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:22px 22px 18px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.5);transform:translateY(10px) scale(.97);transition:transform .25s cubic-bezier(.34,1.4,.64,1);box-sizing:border-box}
+#update-modal-overlay.show .update-card{transform:translateY(0) scale(1)}
+.update-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.update-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#1f6feb,#9b5de5);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(31,111,235,.4)}
+.update-text{flex:1}
+.update-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.2px}
+.update-sub{font-size:11px;color:var(--text2);margin-top:2px;line-height:1.4}
+.update-changelist{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:7px}
+.update-changelist li{font-size:12px;color:var(--text2);line-height:1.4;display:flex;align-items:flex-start;gap:8px}
+.update-changelist li::before{content:'✦';color:var(--blue);font-size:10px;line-height:1.6;flex-shrink:0}
+.update-btns{display:flex;gap:8px}
+.update-btn-primary{flex:1;background:linear-gradient(135deg,#1f6feb,#9b5de5);color:#fff;border:none;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s;letter-spacing:-.1px}
+.update-btn-primary:hover{opacity:.88}
+.update-btn-later{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:10px;padding:11px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.update-btn-later:hover{background:var(--bg4);color:var(--text)}
 .mood-sparkline-wrap{margin-bottom:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)}
 .mood-sparkline-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:6px;font-weight:500}
 .mood-sparkline-svg{width:100%;height:44px;display:block}
@@ -530,8 +566,8 @@ body.compact-mode .checklist-grid{gap:5px}
 /* done during window: calm green, no pulse */
 .check-card.tw-active.done{animation:none!important;box-shadow:none!important;border-color:var(--green3)!important;opacity:1}
 .check-card.tw-active.done .check-tw-badge{background:rgba(57,211,83,.12);color:var(--green);border-color:rgba(57,211,83,.3)}
-.sched-xweek-input{width:50px;padding:5px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:13px;text-align:center;font-family:'JetBrains Mono',monospace}
-.sched-xweek-input:focus{outline:none;border-color:var(--blue)}
+.sched-xweek-input{width:50px;padding:5px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-size:13px;text-align:center;font-family:'JetBrains Mono',monospace;transition:border-color .15s,box-shadow .15s}
+.sched-xweek-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.12)}
 .sched-tag{font-size:8px;padding:1px 5px;border-radius:8px;font-weight:600;background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.2);white-space:nowrap;flex-shrink:0}
 .habit-skipped{opacity:.35}
 
@@ -554,7 +590,7 @@ body.compact-mode .checklist-grid{gap:5px}
   .sidebar.sb-open{transform:translateX(0)}
   .main-content{margin-left:0;padding:16px;padding-top:64px}
   /* settings drawer always above sidebar on mobile */
-  .settings-drawer{width:100%;border-radius:20px 20px 0 0;z-index:600;max-height:90vh}
+  .settings-drawer{width:100%;border-radius:20px 20px 0 0;z-index:600;max-height:90vh;padding-bottom:env(safe-area-inset-bottom)}
   body:not(.sidebar-open-mobile) .hamburger{left:12px;top:12px}
   body.sidebar-open-mobile .hamburger{left:160px;top:6px}
   .sb-overlay{display:block}
@@ -604,7 +640,7 @@ body.compact-mode .checklist-grid{gap:5px}
   .heatmap-wrap{font-size:9px}
   .heat-cell{width:9px;height:9px}
   /* settings full-width bottom sheet on mobile */
-  .settings-drawer{width:100%;border-radius:20px 20px 0 0;z-index:600;max-height:92vh}
+  .settings-drawer{width:100%;border-radius:20px 20px 0 0;z-index:600;max-height:92vh;padding-bottom:env(safe-area-inset-bottom)}
   .settings-drawer-header{padding:16px 18px}
   .settings-drawer-title{font-size:14px}
   .settings-close-btn{width:30px;height:30px;font-size:14px;border-radius:8px}
@@ -836,6 +872,13 @@ function playSound(type){
   if(!load('ht2_sound',true))return;
   try{
     const ctx=getAudioCtx();
+    // Browsers create the AudioContext in a 'suspended' state until a user
+    // gesture unlocks it, and it never auto-resumes on its own. Without this,
+    // oscillators get scheduled but produce no audible sound, and ctx.currentTime
+    // stays frozen until something else happens to resume the context later —
+    // which is what caused sounds to be missing or to fire late/out of sync.
+    // Resuming here (a cheap no-op once already running) fixes both symptoms.
+    if(ctx.state==='suspended')ctx.resume();
     const g=ctx.createGain();
     g.connect(ctx.destination);
     const now=ctx.currentTime;
@@ -1066,6 +1109,13 @@ let state={
   lbMembers:[],        // live data pulled from Firebase, this device's view only
   lbOnboardOpen:false, // first-run / join modal
   lbFormName:'',lbFormAvatar:'😎',lbFormGroup:'',
+
+  // ── ADAPTIVE ROUTINE (persisted only — UI/wizard state lives in arState) ──
+  arEnabled: load('ht2_ar_enabled', false),
+  arRoutines: load('ht2_ar_routines', []),       // [{id,name,hiddenIds,extraHabitIds,newHabits:[]}]
+  arActiveId: load('ht2_ar_active_id', null),    // id of active routine or null
+  arActiveMode: load('ht2_ar_active_mode','today'), // 'today' | 'manual'
+  arActivatedDate: load('ht2_ar_activated_date', null), // 'YYYY-M-D' string
 };
 
 function setState(patch){state={...state,...patch};render();saveAll()}
@@ -1076,6 +1126,12 @@ function saveAll(){
   save('ht2_mood',state.mood);
   save('ht2_motiv',state.motiv);
   save('ht2_widget_order',state.widgetOrder);
+  // Adaptive Routine persistence
+  save('ht2_ar_enabled', state.arEnabled);
+  save('ht2_ar_routines', state.arRoutines);
+  save('ht2_ar_active_id', state.arActiveId);
+  save('ht2_ar_active_mode', state.arActiveMode);
+  save('ht2_ar_activated_date', state.arActivatedDate);
 }
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
@@ -1330,7 +1386,15 @@ function buildSidebar(){
   );
   yearSel.addEventListener('change',e=>setState({year:+e.target.value}));
 
-  return h('div',{className:'sidebar'},
+  // render() rebuilds this element from scratch on every setState(), but the
+  // sidebar's open/closed state on mobile is otherwise tracked only as an
+  // imperative class on the old DOM node (set by toggleSidebar/closeSidebar).
+  // That class doesn't survive the rebuild, while the backdrop (#sb-overlay)
+  // and the body class live outside #app and do survive it — desyncing the
+  // sidebar from its own backdrop. Body class is the persistent source of
+  // truth, so re-derive the sidebar's class from it on every rebuild.
+  const sbOpenMobile=document.body.classList.contains('sidebar-open-mobile');
+  return h('div',{className:'sidebar'+(sbOpenMobile?' sb-open':'')},
     h('div',{className:'sb-logo'},
       h('div',{className:'sb-logo-toprow'},
         h('div',{className:'sb-logo-icon'},'📔'),
@@ -1364,6 +1428,7 @@ function buildSidebar(){
       )
     ),
     h('button',{className:'add-habit-btn',onClick:openAdd},'＋  Add New Habit'),
+    buildArSidebarButton(),
     h('div',{className:'sb-footer'},
       h('button',{className:'settings-gear-btn',onClick:openSettings},
         h('span',{className:'gear-icon'},'⚙️'),
@@ -1439,10 +1504,14 @@ function nextOccurrenceLabel(occ){
 }
 
 function buildChecklist(){
-  const {year,month,habits,checks}=state;
+  const {year,month,checks}=state;
   const today=new Date();
   const isCur=today.getFullYear()===year&&today.getMonth()===month;
   const targetDay=isCur?today.getDate():daysInMonth(year,month);
+  const isRealTodayView=isCur&&targetDay===today.getDate();
+  // Adaptive Routine only ever swaps habits for the real "today" view —
+  // browsing past/future days, or other months, always shows normal habits.
+  const habits=isRealTodayView?arGetVisibleHabits():state.habits;
   const collapsed=state.collapsedSections['checklist'];
   const inactiveCollapsed=state.collapsedSections['checklist-inactive']!==false; // collapsed by default
 
@@ -1553,11 +1622,15 @@ function buildChecklist(){
     inactiveCollapsed?null:inactiveGrid
   ):null;
 
+  const activeRoutineForBadge=isRealTodayView?arGetActive():null;
+  const routineBadge=activeRoutineForBadge?h('span',{style:{marginLeft:'8px',background:'rgba(88,166,255,.15)',color:'var(--blue)',padding:'1px 8px',borderRadius:'10px',fontSize:'9px',fontWeight:'700',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'3px'},onClick:arOpen},'🌤 '+activeRoutineForBadge.name):null;
+
   return h('div',{className:'card widget'},
     h('div',{className:'card-title'},
       h('span',{className:'card-title-icon'},'✅'),
       isCur?`Today's Habits — Day ${targetDay}`:`${MONTHS[month]} ${targetDay} Habits`,
       h('span',{style:{marginLeft:'8px',background:'rgba(57,211,83,.15)',color:'#39d353',padding:'1px 7px',borderRadius:'10px',fontSize:'9px',fontWeight:'700'}},`${doneToday}/${todayHabits.length}`),
+      routineBadge,
       toggleBtn
     ),
     collapsed?null:h('div',null,
@@ -2669,6 +2742,556 @@ function buildModal(){
   return overlay;
 }
 
+// ── ADAPTIVE ROUTINE ─────────────────────────────────────────────────────────
+// Self-contained mini-app: persisted data lives on `state` (arEnabled,
+// arRoutines, arActiveId, arActiveMode, arActivatedDate — saved via saveAll()).
+// Everything else (which wizard step you're on, draft form fields, which
+// page of the overlay is showing) lives in `arState`, a private object that
+// is NOT part of the global `state`/`setState()` cycle. This is what fixes
+// the flicker: editing the routine name or tapping a radio button no longer
+// triggers a full-app render() — it only updates this one small overlay.
+
+let arState = {
+  open:false,         // is the overlay mounted at all
+  page:'home',         // 'onboard' | 'home' | 'create' | 'edit' | 'apply'
+  step:1,               // wizard step 1-5 (create/edit)
+  editId:null,           // routine id being edited/applied
+  form:{name:'',hiddenIds:[],extraHabitIds:[],newHabits:[]}, // wizard draft
+  newHabitDraft:{name:'',emoji:'✨'},
+  applyMode:'today',      // 'today' | 'manual' — draft choice on the apply screen
+};
+
+function arResetForm(){
+  arState.form={name:'',hiddenIds:[],extraHabitIds:[],newHabits:[]};
+  arState.newHabitDraft={name:'',emoji:'✨'};
+}
+
+// Persist just the AR-related keys without touching/re-rendering the rest
+// of the app. Used by every mutation inside the overlay so the main app
+// behind it stays completely still — no flicker, no lost scroll position.
+function arPersist(){
+  save('ht2_ar_enabled', state.arEnabled);
+  save('ht2_ar_routines', state.arRoutines);
+  save('ht2_ar_active_id', state.arActiveId);
+  save('ht2_ar_active_mode', state.arActiveMode);
+  save('ht2_ar_activated_date', state.arActivatedDate);
+}
+
+// Auto-revert "today only" routines when the date changes.
+function arCheckAutoRevert(){
+  if(!state.arEnabled||!state.arActiveId)return;
+  if(state.arActiveMode!=='today')return;
+  const todayStr=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  if(state.arActivatedDate && state.arActivatedDate!==todayStr){
+    state.arActiveId=null;
+    state.arActivatedDate=null;
+    arPersist();
+  }
+}
+
+// Get the currently active routine object (or null).
+function arGetActive(){
+  if(!state.arEnabled||!state.arActiveId)return null;
+  arCheckAutoRevert();
+  return state.arRoutines.find(r=>r.id===state.arActiveId)||null;
+}
+
+// Get visible habits given the active routine (or all habits if none).
+function arGetVisibleHabits(){
+  const routine=arGetActive();
+  if(!routine)return state.habits;
+  const hiddenSet=new Set(routine.hiddenIds||[]);
+  const base=state.habits.filter(h=>!hiddenSet.has(h.id));
+  const extras=(routine.newHabits||[]).map(nh=>({...nh,_arRoutineOnly:true}));
+  return [...base,...extras];
+}
+
+// ── MOUNT / UNMOUNT ─────────────────────────────────────────────────────────
+// The overlay is mounted exactly once per "open" session. All subsequent
+// interactions call arRender(), which only replaces the inner panel's
+// content (innerHTML swap on a stable container), never the overlay/backdrop
+// itself. That's what removes the flicker and the focus/animation resets.
+
+function arOpen(){
+  if(document.getElementById('ar-overlay'))return; // already open
+  arState.open=true;
+  arState.page=state.arEnabled?'home':'onboard';
+  arState.step=1;
+  arState.editId=null;
+  arResetForm();
+  arCheckAutoRevert();
+
+  const overlay=h('div',{id:'ar-overlay',className:'overlay',style:{
+    position:'fixed',inset:'0',background:'rgba(13,17,23,.92)',zIndex:'1200',
+    display:'flex',alignItems:'flex-end',justifyContent:'center'
+  }});
+  overlay.addEventListener('click',e=>{ if(e.target===overlay) arClose(); });
+
+  const panel=h('div',{id:'ar-panel',className:'modal',style:{
+    width:'100%',maxWidth:'480px',maxHeight:'90vh',overflowY:'auto',
+    borderRadius:'14px 14px 0 0',padding:'24px 22px 28px',margin:'0 auto',
+    boxSizing:'border-box'
+  }});
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  arRender();
+}
+
+function arClose(){
+  arState.open=false;
+  const el=document.getElementById('ar-overlay');
+  if(el)el.remove();
+}
+
+// Re-renders only the panel's inner content in place. Never touches
+// document.body, never touches the rest of the app's DOM tree.
+function arRender(){
+  const panel=document.getElementById('ar-panel');
+  if(!panel)return; // overlay isn't mounted — nothing to do
+  // Centered onboarding/apply screens want a different alignment than the
+  // bottom-sheet wizard/home screens — toggle the overlay's own alignment
+  // instead of rebuilding it.
+  const overlay=document.getElementById('ar-overlay');
+  if(overlay){
+    overlay.style.alignItems = arState.page==='onboard' ? 'center' : 'flex-end';
+  }
+  panel.style.borderRadius = arState.page==='onboard' ? '14px' : '14px 14px 0 0';
+  panel.style.maxWidth = arState.page==='onboard' ? '360px' : '480px';
+  panel.style.textAlign = arState.page==='onboard' ? 'center' : 'left';
+
+  panel.innerHTML='';
+  panel.appendChild(arBuildPage());
+}
+
+// ── SHARED UI BITS ───────────────────────────────────────────────────────────
+function arStepDots(current,total){
+  return h('div',{style:{display:'flex',gap:'5px',justifyContent:'center',margin:'12px 0 4px'}},
+    ...Array.from({length:total},(_,i)=>h('div',{style:{
+      width:'6px',height:'6px',borderRadius:'50%',
+      background:i<current?'var(--blue)':'var(--bg4)',
+      transition:'background .2s'
+    }}))
+  );
+}
+
+// ── PAGE ROUTER ──────────────────────────────────────────────────────────────
+function arBuildPage(){
+  switch(arState.page){
+    case 'onboard': return arPageOnboard();
+    case 'create':
+    case 'edit':    return arPageWizard();
+    case 'apply':   return arPageApply();
+    default:        return arPageHome();
+  }
+}
+
+// ── PAGE: Onboarding ─────────────────────────────────────────────────────────
+function arPageOnboard(){
+  return h('div',{style:{padding:'8px 6px'}},
+    h('div',{style:{fontSize:'40px',marginBottom:'12px'}},'🌤'),
+    h('h2',{style:{fontSize:'17px',fontWeight:'700',marginBottom:'8px',color:'var(--text)'}},'Adaptive Routine'),
+    h('p',{style:{fontSize:'12px',color:'var(--text2)',lineHeight:'1.7',marginBottom:'24px'}},
+      "Life isn't always the same. Switch between routines for workdays, weekends, holidays, travel, or any special day.",
+      h('br',null),h('br',null),
+      h('strong',{style:{color:'var(--text)'}},"Only today's routine changes.")
+    ),
+    h('button',{style:{width:'100%',padding:'11px 20px',background:'linear-gradient(135deg,var(--blue),var(--purple))',border:'none',color:'#fff',borderRadius:'8px',fontWeight:'700',fontSize:'13px',cursor:'pointer',fontFamily:'Inter,sans-serif',letterSpacing:'-.1px'},onClick:()=>{
+      state.arEnabled=true;
+      arPersist();
+      arState.page='home';
+      arRender();
+    }},'Enable Adaptive Routine'),
+    h('button',{style:{marginTop:'10px',width:'100%',padding:'8px',background:'transparent',border:'none',color:'var(--text3)',fontSize:'11px',cursor:'pointer',fontFamily:'Inter,sans-serif'},onClick:arClose},'Maybe later')
+  );
+}
+
+// ── PAGE: Home ────────────────────────────────────────────────────────────────
+function arPageHome(){
+  const activeRoutine=state.arRoutines.find(r=>r.id===state.arActiveId)||null;
+
+  const header=h('div',{style:{display:'flex',alignItems:'center',gap:'10px',marginBottom:'18px'}},
+    h('span',{style:{fontSize:'22px'}},'🌤'),
+    h('h2',{style:{flex:'1',fontSize:'16px',fontWeight:'700',color:'var(--text)'}},'Adaptive Routine'),
+    h('button',{style:{background:'transparent',border:'none',color:'var(--text3)',cursor:'pointer',fontSize:'18px',padding:'4px'},onClick:arClose},'✕')
+  );
+
+  const currentBox=h('div',{style:{background:'var(--bg3)',borderRadius:'8px',padding:'12px 14px',marginBottom:'16px',border:`1px solid ${activeRoutine?'var(--blue)':'var(--border)'}`}},
+    h('div',{style:{fontSize:'9px',textTransform:'uppercase',letterSpacing:'1.5px',color:'var(--text3)',fontWeight:'700',marginBottom:'6px'}},'Current Routine'),
+    h('div',{style:{display:'flex',alignItems:'center',gap:'10px'}},
+      h('span',{style:{flex:'1',fontSize:'13px',fontWeight:'600',color:activeRoutine?'var(--blue)':'var(--text2)'}},activeRoutine?activeRoutine.name:'None'),
+      activeRoutine?h('button',{style:{padding:'4px 10px',background:'rgba(248,81,73,.1)',border:'1px solid rgba(248,81,73,.25)',color:'var(--red)',borderRadius:'6px',fontSize:'10px',cursor:'pointer',fontWeight:'600',fontFamily:'Inter,sans-serif'},onClick:()=>{
+        state.arActiveId=null;
+        state.arActivatedDate=null;
+        arPersist();
+        arRender(); // refresh this panel first — keeps the overlay's own DOM stable
+        render();   // then refresh the main app behind it (checklist habits changed)
+      }},'Switch Off'):null
+    ),
+    activeRoutine&&state.arActiveMode==='today'?h('div',{style:{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}},'⏰ Auto-reverts tomorrow'):null
+  );
+
+  const listLabel=h('div',{style:{fontSize:'9px',textTransform:'uppercase',letterSpacing:'1.5px',color:'var(--text3)',fontWeight:'700',marginBottom:'8px'}},'Your Routines');
+
+  let listBody;
+  if(state.arRoutines.length===0){
+    listBody=h('div',{style:{textAlign:'center',padding:'24px 0',color:'var(--text3)',fontSize:'12px'}},'No routines created yet.');
+  } else {
+    listBody=h('div',{style:{display:'flex',flexDirection:'column',gap:'6px'}},
+      ...state.arRoutines.map(r=>{
+        const isActive=r.id===state.arActiveId;
+        const row=h('div',{style:{display:'flex',alignItems:'center',gap:'8px',padding:'10px 12px',background:isActive?'rgba(88,166,255,.08)':'var(--bg3)',border:`1px solid ${isActive?'var(--blue)':'var(--border)'}`,borderRadius:'8px',cursor:'pointer',transition:'border-color .15s'}},
+          h('span',{style:{flex:'1',fontSize:'13px',fontWeight:'600',color:isActive?'var(--blue)':'var(--text)'}},r.name),
+          isActive?h('span',{style:{fontSize:'9px',background:'var(--blue)',color:'#fff',borderRadius:'4px',padding:'1px 5px',fontWeight:'700'}},'ACTIVE'):null
+        );
+        const editBtn=h('button',{style:{padding:'3px 8px',background:'var(--bg4)',border:'1px solid var(--border)',color:'var(--text2)',borderRadius:'5px',fontSize:'10px',cursor:'pointer',fontFamily:'Inter,sans-serif'}},'Edit');
+        const delBtn=h('button',{style:{padding:'3px 8px',background:'rgba(248,81,73,.08)',border:'1px solid rgba(248,81,73,.2)',color:'var(--red)',borderRadius:'5px',fontSize:'10px',cursor:'pointer',fontFamily:'Inter,sans-serif'}},'✕');
+
+        editBtn.addEventListener('click',e=>{
+          e.stopPropagation();
+          arState.page='edit';
+          arState.editId=r.id;
+          arState.step=1;
+          arState.form={name:r.name,hiddenIds:[...(r.hiddenIds||[])],extraHabitIds:[...(r.extraHabitIds||[])],newHabits:[...(r.newHabits||[])]};
+          arRender();
+        });
+        delBtn.addEventListener('click',e=>{
+          e.stopPropagation();
+          if(!confirm(`Delete "${r.name}" routine?`))return;
+          state.arRoutines=state.arRoutines.filter(rx=>rx.id!==r.id);
+          if(state.arActiveId===r.id){state.arActiveId=null;state.arActivatedDate=null;}
+          arPersist();
+          arRender(); // refresh this panel first — overlay DOM stays stable
+          render();   // then refresh the main app (routine may have been active)
+        });
+        row.appendChild(editBtn);
+        row.appendChild(delBtn);
+        row.addEventListener('click',()=>{
+          arState.page='apply';
+          arState.editId=r.id;
+          arState.applyMode='today';
+          arRender();
+        });
+        return row;
+      })
+    );
+  }
+
+  const createBtn=h('button',{style:{width:'100%',padding:'10px',background:'linear-gradient(135deg,rgba(88,166,255,.15),rgba(188,140,255,.12))',border:'1px dashed rgba(88,166,255,.35)',color:'var(--blue)',borderRadius:'8px',fontWeight:'600',fontSize:'12px',cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',marginTop:'14px'},onClick:()=>{
+    arState.page='create';
+    arState.step=1;
+    arState.editId=null;
+    arResetForm();
+    arRender();
+  }},h('span',null,'+'),' Create Routine');
+
+  return h('div',null,
+    header,
+    currentBox,
+    h('div',null,listLabel,listBody),
+    createBtn
+  );
+}
+
+// ── PAGE: Apply ───────────────────────────────────────────────────────────────
+function arPageApply(){
+  const routine=state.arRoutines.find(r=>r.id===arState.editId);
+  if(!routine){
+    arState.page='home';
+    return arPageHome();
+  }
+
+  function modeRow(mode,label){
+    const sel=arState.applyMode===mode;
+    const row=h('label',{style:{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',background:sel?'rgba(88,166,255,.1)':'var(--bg3)',border:`1px solid ${sel?'var(--blue)':'var(--border)'}`,borderRadius:'8px',cursor:'pointer',fontSize:'12px',color:sel?'var(--blue)':'var(--text2)',fontWeight:sel?'600':'400'}});
+    const radio=document.createElement('input');
+    radio.type='radio';radio.name='ar-apply-mode';radio.value=mode;radio.checked=sel;
+    radio.style.accentColor='var(--blue)';
+    radio.addEventListener('change',()=>{
+      arState.applyMode=mode;
+      arRender();
+    });
+    row.appendChild(radio);
+    row.appendChild(document.createTextNode(label));
+    return row;
+  }
+
+  const applyBtn=h('button',{style:{flex:'1',padding:'10px',background:'linear-gradient(135deg,var(--blue),var(--purple))',border:'none',color:'#fff',borderRadius:'8px',fontWeight:'700',fontSize:'13px',cursor:'pointer',fontFamily:'Inter,sans-serif'}},'Apply Routine');
+  applyBtn.addEventListener('click',()=>{
+    const todayStr=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    state.arActiveId=routine.id;
+    state.arActiveMode=arState.applyMode;
+    state.arActivatedDate=arState.applyMode==='today'?todayStr:null;
+    arPersist();
+    arState.page='home';
+    arRender(); // refresh this panel first — overlay DOM stays stable
+    render();   // then refresh main app (checklist habits changed)
+  });
+
+  const cancelBtn=h('button',{style:{flex:'1',padding:'10px',background:'var(--bg3)',border:'1px solid var(--border)',color:'var(--text2)',borderRadius:'8px',fontWeight:'600',fontSize:'12px',cursor:'pointer',fontFamily:'Inter,sans-serif'},onClick:()=>{arState.page='home';arRender();}},'Cancel');
+
+  return h('div',null,
+    h('h3',{style:{fontSize:'15px',fontWeight:'700',color:'var(--text)',marginBottom:'6px'}},`Apply "${routine.name}"?`),
+    h('p',{style:{fontSize:'11px',color:'var(--text2)',marginBottom:'18px'}},"Only today's visible habits will change. History and streaks are untouched."),
+    h('div',{style:{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'20px'}},
+      modeRow('today','● Today Only (Recommended)'),
+      modeRow('manual','○ Until I switch back')
+    ),
+    h('div',{style:{display:'flex',gap:'8px'}},cancelBtn,applyBtn)
+  );
+}
+
+// ── PAGE: Create / Edit wizard ───────────────────────────────────────────────
+const AR_STEP_LABELS=[null,'Name','Hide Habits','Feature Habits','New Habits','Preview'];
+const AR_TOTAL_STEPS=5;
+const AR_PRESETS=['Holiday 🏖','Weekend 🛋','Travel ✈️','Work From Home 🏠','Exam Week 📚','Night Shift 🌙','Sick Day 🤒'];
+const AR_QUICK_EMOJIS=['✨','📖','🎮','🏃','🎨','🎵','🧘','🍳','📷','🌿','🤸','💪'];
+
+function arWizardStep1(){
+  const inp=document.createElement('input');
+  inp.type='text';inp.placeholder='e.g. Holiday, Travel, Exam Week…';
+  inp.value=arState.form.name||'';
+  inp.style.cssText='width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:13px;font-family:Inter,sans-serif;outline:none;box-sizing:border-box;margin:4px 0 16px';
+  // Update the draft directly, in-place — no re-render while typing, so
+  // the input never loses focus or cursor position.
+  inp.addEventListener('input',e=>{
+    arState.form.name=e.target.value;
+    arSyncNextButton();
+  });
+  setTimeout(()=>inp.focus(),30);
+
+  return h('div',null,
+    h('p',{style:{fontSize:'12px',color:'var(--text2)',marginBottom:'12px'}},'Give your routine a name.'),
+    inp,
+    h('div',{style:{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'16px'}},
+      ...AR_PRESETS.map(p=>h('button',{style:{padding:'4px 10px',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:'20px',color:'var(--text2)',fontSize:'10px',cursor:'pointer',fontFamily:'Inter,sans-serif'},onClick:()=>{
+        arState.form.name=p;
+        arRender();
+      }},p))
+    )
+  );
+}
+
+function arWizardStep2(){
+  const hidden=new Set(arState.form.hiddenIds||[]);
+  return h('div',null,
+    h('p',{style:{fontSize:'12px',color:'var(--text2)',marginBottom:'12px'}},'Which habits should NOT appear in this routine?'),
+    state.habits.length===0
+      ? h('div',{style:{fontSize:'12px',color:'var(--text3)',textAlign:'center',padding:'20px 0'}},"You don't have any habits yet.")
+      : h('div',{style:{display:'flex',flexDirection:'column',gap:'6px',maxHeight:'260px',overflowY:'auto'}},
+          ...state.habits.map(hb=>{
+            const checked=hidden.has(hb.id);
+            const row=h('label',{style:{display:'flex',alignItems:'center',gap:'10px',padding:'8px 10px',background:'var(--bg3)',borderRadius:'7px',cursor:'pointer',border:`1px solid ${checked?'var(--red)':'var(--border)'}`}},
+              h('span',{style:{fontSize:'16px'}},hb.emoji),
+              h('span',{style:{flex:'1',fontSize:'12px',color:'var(--text)',fontWeight:'500'}},hb.name),
+              h('span',{style:{fontSize:'11px',color:checked?'var(--red)':'var(--text3)',fontWeight:'600'}},checked?'Hidden':'Visible')
+            );
+            row.addEventListener('click',()=>{
+              const ids=new Set(arState.form.hiddenIds||[]);
+              if(ids.has(hb.id))ids.delete(hb.id); else ids.add(hb.id);
+              arState.form.hiddenIds=[...ids];
+              arRender();
+            });
+            return row;
+          })
+        )
+  );
+}
+
+function arWizardStep3(){
+  const extras=new Set(arState.form.extraHabitIds||[]);
+  const candidates=state.habits.filter(hb=>!(arState.form.hiddenIds||[]).includes(hb.id));
+  return h('div',null,
+    h('p',{style:{fontSize:'12px',color:'var(--text2)',marginBottom:'12px'}},'Want to highlight any existing habits for this routine? (optional)'),
+    candidates.length===0
+      ? h('div',{style:{fontSize:'12px',color:'var(--text3)',textAlign:'center',padding:'20px 0'}},'No other habits available to feature.')
+      : h('div',{style:{display:'flex',flexDirection:'column',gap:'6px',maxHeight:'220px',overflowY:'auto'}},
+          ...candidates.map(hb=>{
+            const on=extras.has(hb.id);
+            const row=h('label',{style:{display:'flex',alignItems:'center',gap:'10px',padding:'8px 10px',background:'var(--bg3)',borderRadius:'7px',cursor:'pointer',border:`1px solid ${on?'var(--blue)':'var(--border)'}`}},
+              h('span',{style:{fontSize:'16px'}},hb.emoji),
+              h('span',{style:{flex:'1',fontSize:'12px',color:'var(--text)',fontWeight:'500'}},hb.name),
+              h('span',{style:{fontSize:'11px',color:on?'var(--blue)':'var(--text3)',fontWeight:'600'}},on?'Pinned':'—')
+            );
+            row.addEventListener('click',()=>{
+              const ids=new Set(arState.form.extraHabitIds||[]);
+              if(ids.has(hb.id))ids.delete(hb.id); else ids.add(hb.id);
+              arState.form.extraHabitIds=[...ids];
+              arRender();
+            });
+            return row;
+          })
+        )
+  );
+}
+
+function arWizardStep4(){
+  const newHabits=arState.form.newHabits||[];
+
+  const nameInp=document.createElement('input');
+  nameInp.type='text';nameInp.placeholder='Habit name…';
+  nameInp.value=arState.newHabitDraft.name||'';
+  nameInp.style.cssText='flex:1;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:12px;font-family:Inter,sans-serif;outline:none';
+  nameInp.addEventListener('input',e=>{ arState.newHabitDraft.name=e.target.value; });
+  nameInp.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();arWizardAddHabit();} });
+
+  const addBtn=h('button',{style:{padding:'8px 12px',background:'var(--bg3)',border:'1px solid var(--border2)',borderRadius:'6px',color:'var(--text2)',cursor:'pointer',fontSize:'18px',lineHeight:'1'}},arState.newHabitDraft.emoji);
+  addBtn.addEventListener('click',arWizardAddHabit);
+
+  function arWizardAddHabit(){
+    const nm=(arState.newHabitDraft.name||'').trim();
+    if(!nm)return;
+    const nh={id:Date.now()+Math.floor(Math.random()*1000),name:nm,emoji:arState.newHabitDraft.emoji,color:COLORS[0],_arRoutineOnly:true,schedule:{type:'daily'},cat:'Other'};
+    arState.form.newHabits=[...(arState.form.newHabits||[]),nh];
+    arState.newHabitDraft={name:'',emoji:'✨'};
+    arRender();
+  }
+
+  return h('div',null,
+    h('p',{style:{fontSize:'12px',color:'var(--text2)',marginBottom:'12px'}},'Add habits that exist only in this routine. (optional)'),
+    newHabits.length?h('div',{style:{display:'flex',flexDirection:'column',gap:'5px',marginBottom:'12px',maxHeight:'140px',overflowY:'auto'}},
+      ...newHabits.map((nh,i)=>{
+        const row=h('div',{style:{display:'flex',alignItems:'center',gap:'8px',padding:'7px 10px',background:'var(--bg3)',borderRadius:'6px'}},
+          h('span',{style:{fontSize:'15px'}},nh.emoji),
+          h('span',{style:{flex:'1',fontSize:'12px',color:'var(--text)'}},nh.name)
+        );
+        const rmBtn=h('button',{style:{padding:'2px 7px',background:'rgba(248,81,73,.12)',border:'1px solid rgba(248,81,73,.25)',color:'var(--red)',borderRadius:'4px',cursor:'pointer',fontSize:'10px',fontFamily:'Inter,sans-serif'}},'✕');
+        rmBtn.addEventListener('click',()=>{
+          const arr=[...arState.form.newHabits];arr.splice(i,1);
+          arState.form.newHabits=arr;
+          arRender();
+        });
+        row.appendChild(rmBtn);
+        return row;
+      })
+    ):null,
+    h('div',{style:{display:'flex',gap:'6px',marginBottom:'8px'}},nameInp,addBtn),
+    h('div',{style:{display:'flex',flexWrap:'wrap',gap:'5px'}},
+      ...AR_QUICK_EMOJIS.map(em=>{
+        const sel=arState.newHabitDraft.emoji===em;
+        const btn=h('button',{style:{width:'30px',height:'30px',background:sel?'var(--bg4)':'var(--bg3)',border:`1px solid ${sel?'var(--border2)':'var(--border)'}`,borderRadius:'6px',cursor:'pointer',fontSize:'16px'}},em);
+        btn.addEventListener('click',()=>{ arState.newHabitDraft.emoji=em; arRender(); });
+        return btn;
+      })
+    )
+  );
+}
+
+function arWizardStep5(){
+  const hidden=new Set(arState.form.hiddenIds||[]);
+  const visible=state.habits.filter(h=>!hidden.has(h.id));
+  const hiddenList=state.habits.filter(h=>hidden.has(h.id));
+  const newHabits=arState.form.newHabits||[];
+  return h('div',null,
+    h('p',{style:{fontSize:'12px',color:'var(--text2)',marginBottom:'14px'}},"Here's what this routine looks like."),
+    h('div',{style:{background:'var(--bg3)',borderRadius:'8px',padding:'12px',marginBottom:'10px'}},
+      h('div',{style:{fontSize:'10px',fontWeight:'700',color:'var(--green)',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}},'✓ Visible'),
+      visible.length===0&&newHabits.length===0
+        ? h('div',{style:{fontSize:'11px',color:'var(--text3)'}},'Nothing visible — every habit is hidden.')
+        : null,
+      ...visible.map(hb=>h('div',{style:{fontSize:'12px',color:'var(--text)',padding:'3px 0',display:'flex',gap:'8px',alignItems:'center'}},h('span',null,hb.emoji),hb.name)),
+      ...newHabits.map(nh=>h('div',{style:{fontSize:'12px',color:'var(--blue)',padding:'3px 0',display:'flex',gap:'8px',alignItems:'center'}},h('span',null,nh.emoji),nh.name,' ',h('span',{style:{fontSize:'9px',color:'var(--text3)'}},'(new)')))
+    ),
+    hiddenList.length?h('div',{style:{background:'var(--bg3)',borderRadius:'8px',padding:'12px'}},
+      h('div',{style:{fontSize:'10px',fontWeight:'700',color:'var(--text3)',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}},'✕ Hidden'),
+      ...hiddenList.map(hb=>h('div',{style:{fontSize:'12px',color:'var(--text3)',padding:'3px 0',display:'flex',gap:'8px',alignItems:'center'}},h('span',null,hb.emoji),hb.name))
+    ):null
+  );
+}
+
+const AR_WIZARD_STEPS=[null,arWizardStep1,arWizardStep2,arWizardStep3,arWizardStep4,arWizardStep5];
+
+// Updates only the Next/Save button's enabled state without a full re-render
+// — keeps step 1's name input focused while typing.
+function arSyncNextButton(){
+  const btn=document.getElementById('ar-next-btn');
+  if(!btn)return;
+  const canNext=(arState.form.name||'').trim().length>0;
+  btn.disabled=!canNext;
+  btn.style.background=canNext?'var(--blue)':'var(--bg4)';
+  btn.style.color=canNext?'#fff':'var(--text3)';
+  btn.style.cursor=canNext?'pointer':'default';
+}
+
+function arPageWizard(){
+  const isEdit=arState.page==='edit';
+  const stepFn=AR_WIZARD_STEPS[arState.step];
+  const stepContent=stepFn?stepFn():null;
+  const canNext=arState.step===1?(arState.form.name||'').trim().length>0:true;
+
+  const backBtn=h('button',{style:{background:'var(--bg3)',border:'1px solid var(--border)',color:'var(--text2)',width:'28px',height:'28px',borderRadius:'6px',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Inter,sans-serif'}},'←');
+  backBtn.addEventListener('click',()=>{
+    if(arState.step>1){ arState.step--; }
+    else { arState.page='home'; }
+    arRender();
+  });
+
+  const closeBtn=h('button',{style:{background:'transparent',border:'none',color:'var(--text3)',cursor:'pointer',fontSize:'16px',lineHeight:'1',padding:'4px'}},'✕');
+  closeBtn.addEventListener('click',()=>{ arState.page='home'; arRender(); });
+
+  function saveRoutine(){
+    const name=(arState.form.name||'').trim();
+    if(!name)return;
+    const routine={
+      id: isEdit&&arState.editId ? arState.editId : Date.now(),
+      name,
+      hiddenIds: arState.form.hiddenIds||[],
+      extraHabitIds: arState.form.extraHabitIds||[],
+      newHabits: arState.form.newHabits||[]
+    };
+    let routines=[...state.arRoutines];
+    if(isEdit){
+      const idx=routines.findIndex(r=>r.id===arState.editId);
+      if(idx>=0)routines[idx]=routine; else routines.push(routine);
+    } else {
+      routines.push(routine);
+    }
+    state.arRoutines=routines;
+    arPersist();
+    arState.page='home';
+    arState.editId=null;
+    arRender(); // refresh this panel first — overlay DOM stays stable
+    render();   // then refresh main app (routine list affects checklist if active)
+  }
+
+  let footerBtn;
+  if(arState.step<AR_TOTAL_STEPS){
+    footerBtn=h('button',{id:'ar-next-btn',style:{flex:'1',padding:'10px',background:canNext?'var(--blue)':'var(--bg4)',border:'none',color:canNext?'#fff':'var(--text3)',borderRadius:'8px',fontWeight:'600',fontSize:'13px',cursor:canNext?'pointer':'default',fontFamily:'Inter,sans-serif',transition:'background .15s'}},'Next →');
+    footerBtn.disabled=!canNext;
+    footerBtn.addEventListener('click',()=>{
+      if(!((arState.form.name||'').trim().length>0))return;
+      arState.step++;
+      arRender();
+    });
+  } else {
+    footerBtn=h('button',{style:{flex:'1',padding:'10px',background:'linear-gradient(135deg,var(--blue),var(--purple))',border:'none',color:'#fff',borderRadius:'8px',fontWeight:'700',fontSize:'13px',cursor:'pointer',fontFamily:'Inter,sans-serif'}},'Save Routine ✓');
+    footerBtn.addEventListener('click',saveRoutine);
+  }
+
+  return h('div',null,
+    h('div',{style:{display:'flex',alignItems:'center',gap:'10px',marginBottom:'16px'}},
+      backBtn,
+      h('h3',{style:{flex:'1',fontSize:'14px',fontWeight:'700',color:'var(--text)'}},(isEdit?'Edit':'New')+' Routine — '+AR_STEP_LABELS[arState.step]),
+      closeBtn
+    ),
+    arStepDots(arState.step,AR_TOTAL_STEPS),
+    h('div',{style:{minHeight:'180px',marginTop:'12px'}},stepContent),
+    h('div',{style:{display:'flex',gap:'8px',marginTop:'16px'}},footerBtn)
+  );
+}
+
+// ── SIDEBAR ENTRY POINT ───────────────────────────────────────────────────────
+// Lives just below "Add New Habit" in the sidebar (not in Settings).
+function buildArSidebarButton(){
+  const active=state.arEnabled?arGetActive():null;
+  const statusText=active?'Active':(state.arEnabled?'On':'');
+  const statusColor=active?'var(--blue)':'var(--text3)';
+  return h('button',{className:'ar-sidebar-btn'+(active?' ar-active':''),onClick:arOpen},
+    h('span',null,'🌤'),
+    h('span',null,'Adaptive Routine'),
+    statusText?h('span',{className:'ar-sidebar-status',style:{color:statusColor}},statusText):null
+  );
+}
+
 // ── SETTINGS DRAWER ────────────────────────────────────────────────────────
 function buildSettingsDrawer(){
   const isLight=document.body.classList.contains('light-mode');
@@ -3119,6 +3742,65 @@ function initDraggable(){
   });
 }
 
+// ── UPDATE NOTIFICATION SYSTEM ───────────────────────────────────────────────
+// Shipping a new update is just bumping APP_VERSION and editing CHANGELOG —
+// nothing else in this app needs to change.
+const APP_VERSION='1.2.0';
+const CHANGELOG=[
+  'Adaptive Routine',
+  'Improved animations',
+  'Fixed sidebar bug',
+  'Better sound effects'
+];
+const UPDATE_SEEN_KEY='ht2_seen_version';
+
+function checkForUpdate(){
+  const lastSeen=load(UPDATE_SEEN_KEY,null);
+  if(lastSeen===null){
+    // First-ever visit: nothing to announce yet, just baseline the version
+    // so a real future update is the first thing that ever shows.
+    save(UPDATE_SEEN_KEY,APP_VERSION);
+    return;
+  }
+  if(lastSeen===APP_VERSION)return; // already seen/dismissed this version
+  renderUpdatePopup();
+  document.getElementById('update-modal-overlay').classList.add('show');
+}
+
+function renderUpdatePopup(){
+  document.getElementById('update-version-sub').textContent=`Version ${APP_VERSION} — here's what's new:`;
+  const list=document.getElementById('update-changelist');
+  list.innerHTML='';
+  CHANGELOG.forEach(item=>{
+    const li=document.createElement('li');
+    li.textContent=item;
+    list.appendChild(li);
+  });
+}
+
+function dismissUpdatePopup(){
+  document.getElementById('update-modal-overlay').classList.remove('show');
+  // Mark this version seen regardless of which action was taken, so it
+  // never shows again until APP_VERSION changes.
+  save(UPDATE_SEEN_KEY,APP_VERSION);
+}
+
+function updateNow(){
+  dismissUpdatePopup();
+  // Reuse the existing service-worker update path if one is waiting so this
+  // stays in sync with the PWA update flow; otherwise a plain reload already
+  // picks up the latest deployed assets.
+  if(typeof _swReg!=='undefined'&&_swReg&&_swReg.waiting){
+    _swReg.waiting.postMessage('skipWaiting');
+  } else {
+    window.location.reload();
+  }
+}
+
+function updateLater(){
+  dismissUpdatePopup();
+}
+
 // ── BOOT ──────────────────────────────────────────────────────────────────
 // Restore persisted preferences before first render
 (function(){
@@ -3130,8 +3812,17 @@ function initDraggable(){
     document.documentElement.style.setProperty('--green',accentMap[accent]);
     document.documentElement.style.setProperty('--green2',accentMap[accent]+'cc');
   }
+  // Adaptive Routine: if a "today only" routine was left active from a
+  // previous day, silently revert before the first render so the user
+  // never sees stale routine habits.
+  arCheckAutoRevert();
 })();
 render();
+
+// New-version check: runs after first render, slightly behind the first-visit
+// howto popup so the two never compete for attention (in practice they never
+// both fire for the same user — see checkForUpdate's first-visit guard).
+setTimeout(checkForUpdate,1000);
 
 // First-ever visit: auto-open the "How to use Ascend" guide once, after a
 // short delay so it doesn't pop up before the page has visually settled.
@@ -3225,6 +3916,26 @@ if(window.__lb && window.__lb.configured && lbIsSetUp()){
     <div class="pwa-btns" id="pwa-btns">
       <button class="pwa-btn-install" id="pwa-install-btn" onclick="pwaDoInstall()">📲 Install App</button>
       <button class="pwa-btn-later" onclick="pwaDismiss()">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<!-- What's New popup — content filled in by renderUpdatePopup() from the
+     CHANGELOG config below. Never edit this markup to ship an update; edit
+     the config instead. -->
+<div id="update-modal-overlay">
+  <div class="update-card" id="update-card">
+    <div class="update-top">
+      <div class="update-icon">✨</div>
+      <div class="update-text">
+        <div class="update-title">Ascend has improved</div>
+        <div class="update-sub" id="update-version-sub"></div>
+      </div>
+    </div>
+    <ul class="update-changelist" id="update-changelist"></ul>
+    <div class="update-btns">
+      <button class="update-btn-primary" onclick="updateNow()">Update Now</button>
+      <button class="update-btn-later" onclick="updateLater()">Later</button>
     </div>
   </div>
 </div>
