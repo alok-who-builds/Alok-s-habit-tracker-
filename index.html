@@ -63,36 +63,18 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-h
 .back-today-btn:active{transform:scale(.97)}
 .year-sel{width:100%;padding:5px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .15s,box-shadow .15s}
 .year-sel:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
-.habit-list{display:flex;flex-direction:column;gap:3px}
+.habit-list{display:flex;flex-direction:column;gap:3px;padding:6px 0}
 .h-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:5px;cursor:default;position:relative;transition:background .15s}
-.h-group-header{display:flex;align-items:center;gap:7px;padding:6px 6px;margin-top:6px;border-radius:5px;cursor:pointer;user-select:none;transition:background .15s}
-.h-group-header:hover{background:var(--bg3)}
-.h-group-arrow{font-size:8px;color:var(--text3);width:10px;text-align:center;flex-shrink:0;transition:color .15s}
-.h-group-header:hover .h-group-arrow{color:var(--text2)}
-.h-group-emoji{font-size:13px;flex-shrink:0}
-.h-group-name{flex:1;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.h-group-count{font-size:10px;font-weight:600;color:var(--text3);background:var(--bg3);padding:1px 7px;border-radius:9px;flex-shrink:0}
-.h-group-items{padding-left:15px;border-left:1px solid var(--border);margin-left:9px}
-.h-group-block{display:flex;flex-direction:column;border-radius:5px;transition:opacity .15s}
-.h-group-dragging{opacity:.4}
-.h-drag-handle{font-size:11px;color:var(--text3);cursor:grab;flex-shrink:0;line-height:1}
+.h-drag-handle{font-size:11px;color:var(--text3);cursor:grab;flex-shrink:0;line-height:1;touch-action:none;padding:4px;margin:-4px}
 .h-drag-handle:active{cursor:grabbing}
 .h-item.h-dragging{opacity:.4}
-.h-group-header-over{background:rgba(88,166,255,.12);outline:1px dashed var(--blue)}
-.h-group-empty{font-size:10.5px;color:var(--text3);padding:6px 4px;font-style:italic}
-.h-group-acts{position:relative;display:flex;flex-shrink:0}
-.h-group-menu-btn{font-weight:700;line-height:1}
-.h-group-menu{position:absolute;right:0;top:calc(100% + 3px);background:var(--bg2);border:1px solid var(--border);border-radius:7px;box-shadow:0 6px 18px rgba(0,0,0,.35);display:none;flex-direction:column;min-width:130px;z-index:50;overflow:hidden}
-.h-group-menu.open{display:flex}
-.h-group-menu-item{background:none;border:none;text-align:left;padding:8px 12px;font-size:11.5px;color:var(--text2);cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
-.h-group-menu-item:hover{background:var(--bg3);color:var(--text)}
-.h-group-menu-item.danger:hover{color:#f87171}
-.h-ungrouped-label{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text3);padding:10px 6px 4px}
-.new-group-btn{margin:10px 14px 0;display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:1px dashed var(--border);color:var(--text2);padding:7px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;font-family:'Inter',sans-serif;width:calc(100% - 28px)}
-.new-group-btn:hover{background:var(--bg3);border-color:var(--text3);color:var(--text)}
+.h-tag{font-size:9px;font-weight:600;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:1px 6px;border-radius:8px;flex-shrink:0;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .group-field-wrap{margin-bottom:2px}
 .group-select{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12.5px;cursor:pointer;font-family:'Inter',sans-serif}
 .group-select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
+.group-select-row{display:flex;gap:6px;align-items:center}
+.group-select-row .group-select{flex:1}
+.group-select-row .ib{padding:6px 7px;font-size:11px;flex-shrink:0}
 .group-new-row{display:flex;gap:6px;align-items:center}
 .group-new-row input{flex:1;padding:8px 10px;background:var(--bg3);border:1px solid var(--blue);border-radius:6px;color:var(--text);font-size:12.5px;font-family:'Inter',sans-serif}
 .group-new-row input:focus{outline:none}
@@ -655,6 +637,7 @@ body.compact-mode .checklist-grid{gap:5px}
   .h-item{padding:9px 8px;border-radius:8px}
   .h-emoji{font-size:18px;min-width:24px}
   .h-name{font-size:13px}
+  .h-drag-handle{font-size:16px;padding:8px 6px;margin:-8px -6px}
   /* always show edit/delete on touch — no hover */
   .h-acts{display:flex;position:static;flex-shrink:0}
   .ib{padding:5px 8px;font-size:13px;border-radius:6px;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center}
@@ -708,6 +691,8 @@ body.compact-mode .checklist-grid{gap:5px}
   .h-item{padding:11px 10px;border-radius:10px;min-height:50px}
   .h-emoji{font-size:20px;min-width:28px}
   .h-name{font-size:14px;font-weight:600}
+  .h-drag-handle{font-size:18px;padding:10px 6px;margin:-10px -6px}
+  .h-tag{font-size:8.5px;max-width:56px;padding:1px 5px}
   .h-acts{display:flex;position:static;flex-shrink:0;gap:6px}
   .ib{padding:6px 10px;font-size:15px;border-radius:8px;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;line-height:1}
   .month-nav button{width:38px;height:38px;font-size:17px;border-radius:7px}
@@ -746,11 +731,18 @@ body.compact-mode .checklist-grid{gap:5px}
 .hamburger{display:flex;position:fixed;top:19px;left:236px;z-index:400;background:var(--bg2);border:1px solid var(--border);border-radius:7px;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3);transition:background .2s,left .3s cubic-bezier(.4,0,.2,1);flex-direction:column;gap:4px;padding:8px}
 .hamburger:hover{background:var(--bg3)}
 .hamburger span{display:block;width:18px;height:2px;background:currentColor;border-radius:1px;transition:all .2s}
-/* When sidebar is hidden, move hamburger back to left edge */
-body.sidebar-hidden .hamburger{left:12px;top:12px}
-/* When sidebar is hidden, offset main content */
-body.sidebar-hidden .sidebar{transform:translateX(-100%)}
-body.sidebar-hidden .main-content{margin-left:0}
+/* When sidebar is hidden — desktop only. This must NOT apply on mobile:
+   the mobile drawer's open/closed state is driven entirely by .sb-open
+   (see the max-width:768px block), but body ships with class
+   "sidebar-hidden" by default for the desktop collapsed state, and
+   without this guard `body.sidebar-hidden .sidebar` (3 selectors) beats
+   `.sidebar.sb-open` (2 selectors) on specificity — permanently pinning
+   the mobile drawer off-screen even after sb-open is added. */
+@media(min-width:769px){
+  body.sidebar-hidden .hamburger{left:12px;top:12px}
+  body.sidebar-hidden .sidebar{transform:translateX(-100%)}
+  body.sidebar-hidden .main-content{margin-left:0}
+}
 /* On desktop, sidebar starts visible; on mobile it's already off-canvas */
 @media(min-width:769px){
   .sidebar{transition:transform .3s cubic-bezier(.4,0,.2,1)}
@@ -1460,16 +1452,33 @@ function render(){
   }
 }
 
-// Builds one draggable habit row used inside the grouped sidebar list.
-// Dragging and dropping commits a brand-new order straight back into
-// state.habits, so the sidebar always matches the order you set —
-// nothing here ever re-sorts habits automatically.
+// Builds one draggable habit row for the flat sidebar list. Dragging and
+// dropping commits a brand-new order straight back into state.habits, so
+// the sidebar always matches the order you set — nothing here ever
+// re-sorts habits automatically. Group ("cat") is just a small tag shown
+// Builds one draggable habit row for the flat sidebar list. Reordering
+// uses Pointer Events (not native HTML5 drag-and-drop) specifically
+// because HTML5 DnD has no touch support on iOS/Android — a phone user
+// pressing the ⠿ handle and dragging would get nothing at all otherwise.
+// Pointer Events fire the same way for mouse, touch, and pen, so one
+// implementation drives all of them. Dropping commits a brand-new order
+// straight back into state.habits, so the sidebar always matches the
+// order you set — nothing here ever re-sorts habits automatically.
+// Group ("cat") is just a small tag shown on the row; it has no bearing
+// on where the row can be dragged, so a habit from one group can be
+// dropped in between two habits of another group without anything
+// special happening.
 function buildHabitRow(hb,listEl){
-  const row=h('div',{className:'h-item',draggable:'true'},
-    h('span',{className:'h-drag-handle',title:'Drag to reorder'},'⠿'),
+  const tag=(hb.cat&&hb.cat.trim())?h('span',{className:'h-tag',title:hb.cat},hb.cat):null;
+  const handle=h('span',{className:'h-drag-handle',title:'Drag to reorder'},'⠿');
+  const row=h('div',{className:'h-item'},
+    handle,
     h('span',{className:'h-emoji'},hb.emoji),
     h('div',{style:{flex:'1',overflow:'hidden'}},
-      h('div',{className:'h-name'},hb.name),
+      h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
+        h('div',{className:'h-name',style:{flex:'1'}},hb.name),
+        tag
+      ),
       h('div',{className:'sched-tag',style:{marginTop:'2px',display:'inline-block'}},scheduleLabel(hb))
     ),
     h('div',{className:'h-acts'},
@@ -1478,206 +1487,94 @@ function buildHabitRow(hb,listEl){
     )
   );
   row.dataset.habitId=hb.id;
-  row.addEventListener('dragstart',e=>{
-    row.classList.add('h-dragging');
-    e.dataTransfer.effectAllowed='move';
-    e.dataTransfer.setData('text/habit-id',String(hb.id));
-  });
-  row.addEventListener('dragend',()=>{
-    row.classList.remove('h-dragging');
+
+  let dragging=false;
+  function commitOrder(){
     const ids=[...listEl.querySelectorAll('.h-item')].map(el=>+el.dataset.habitId);
     const reordered=ids.map(id=>state.habits.find(x=>x.id===id)).filter(Boolean);
     state.habits.forEach(x=>{if(!reordered.includes(x))reordered.push(x);}); // safety net
     setState({habits:reordered});
-  });
-  row.addEventListener('dragover',e=>{
+  }
+  function onPointerMove(e){
+    if(!dragging)return;
     e.preventDefault();
-    e.dataTransfer.dropEffect='move';
-    const dragging=listEl.querySelector('.h-dragging');
-    if(dragging&&dragging!==row){
-      const rect=row.getBoundingClientRect();
+    const rows=[...listEl.querySelectorAll('.h-item')].filter(r=>r!==row);
+    let placed=false;
+    for(const r of rows){
+      const rect=r.getBoundingClientRect();
       const mid=rect.top+rect.height/2;
-      if(e.clientY<mid)row.parentNode.insertBefore(dragging,row);
-      else row.parentNode.insertBefore(dragging,row.nextSibling);
+      if(e.clientY<mid){r.parentNode.insertBefore(row,r);placed=true;break;}
     }
+    if(!placed&&rows.length)rows[rows.length-1].parentNode.insertBefore(row,rows[rows.length-1].nextSibling);
+    // Auto-scroll the sidebar when dragging near its top/bottom edge —
+    // otherwise a long habit list is unreachable with one finger on phone.
+    const scrollEl=listEl.closest('.sidebar');
+    if(scrollEl){
+      const r2=scrollEl.getBoundingClientRect();
+      const edge=44;
+      if(e.clientY<r2.top+edge)scrollEl.scrollTop-=10;
+      else if(e.clientY>r2.bottom-edge)scrollEl.scrollTop+=10;
+    }
+  }
+  function endDrag(e){
+    if(!dragging)return;
+    dragging=false;
+    row.classList.remove('h-dragging');
+    try{handle.releasePointerCapture(e.pointerId);}catch(_){}
+    commitOrder();
+  }
+  handle.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return; // left-click only
+    e.preventDefault();
+    dragging=true;
+    row.classList.add('h-dragging');
+    handle.setPointerCapture(e.pointerId);
   });
+  handle.addEventListener('pointermove',onPointerMove);
+  handle.addEventListener('pointerup',endDrag);
+  handle.addEventListener('pointercancel',endDrag);
   return row;
 }
 
-// Renames a group: every habit currently in oldName moves to newName, and
-// if it was a still-empty customGroups entry that gets renamed too.
+// Renames a group: every habit currently tagged with oldName gets retagged,
+// and a still-empty customGroups entry gets renamed too. Returns true on
+// success so callers (the habit modal) know whether to update their own
+// local reference to the group name.
 function renameGroup(oldName,newName){
   newName=newName.trim();
-  if(!newName||newName===oldName)return;
+  if(!newName||newName===oldName)return false;
   const clash=state.customGroups.includes(newName)||state.habits.some(hb=>(hb.cat||'').trim()===newName);
-  if(clash){alert('A group with that name already exists.');return;}
+  if(clash){alert('A group with that name already exists.');return false;}
   setState({
     habits:state.habits.map(hb=>(hb.cat||'').trim()===oldName?{...hb,cat:newName}:hb),
-    customGroups:state.customGroups.map(g=>g===oldName?newName:g),
-    groupOrder:state.groupOrder.map(g=>g===oldName?newName:g),
-    collapsedSections:{...state.collapsedSections,['grp:'+newName]:state.collapsedSections['grp:'+oldName]}
+    customGroups:state.customGroups.map(g=>g===oldName?newName:g)
   });
+  return true;
 }
-// Deletes a group. Habits inside it are NOT deleted — they're moved to
-// "No Group" so nobody loses tracked data just because a group goes away.
+// Deletes a group (just a tag — deleting it never deletes habits). Every
+// habit tagged with it falls back to "No Group". Returns true if the
+// delete went through, false if the user cancelled the confirm.
 function deleteGroup(name){
   const count=state.habits.filter(hb=>(hb.cat||'').trim()===name).length;
   const msg=count
-    ? `Delete group "${name}"? Its ${count} habit${count>1?'s':''} will move to "No Group" (not deleted).`
-    : `Delete empty group "${name}"?`;
-  if(!confirm(msg))return;
+    ? `Delete tag "${name}"? Its ${count} habit${count>1?'s':''} will move to "No Group" (not deleted).`
+    : `Delete empty tag "${name}"?`;
+  if(!confirm(msg))return false;
   setState({
     habits:state.habits.map(hb=>(hb.cat||'').trim()===name?{...hb,cat:''}:hb),
-    customGroups:state.customGroups.filter(g=>g!==name),
-    groupOrder:state.groupOrder.filter(g=>g!==name)
+    customGroups:state.customGroups.filter(g=>g!==name)
   });
+  return true;
 }
-// Creates a new, initially-empty group so it shows up in the sidebar
-// ready to receive habits (via the habit modal's Group field, or drag).
-function createGroup(){
-  const name=prompt('New group name:');
-  if(!name||!name.trim())return;
-  const trimmed=name.trim();
-  const exists=state.customGroups.includes(trimmed)||state.habits.some(hb=>(hb.cat||'').trim()===trimmed);
-  if(exists){alert('A group with that name already exists.');return;}
-  setState({customGroups:[...state.customGroups,trimmed],collapsedSections:{...state.collapsedSections,['grp:'+trimmed]:false}});
-}
-// Small ⋮ dropdown menu used on each group header. Only one open at a time;
-// clicking anywhere outside closes whatever's open.
-function toggleGroupMenu(menu){
-  const wasOpen=menu.classList.contains('open');
-  document.querySelectorAll('.h-group-menu.open').forEach(m=>m.classList.remove('open'));
-  if(!wasOpen)menu.classList.add('open');
-}
-document.addEventListener('click',()=>{document.querySelectorAll('.h-group-menu.open').forEach(m=>m.classList.remove('open'));});
 
-// Groups habits by their (free-text) group field into collapsed-by-default
-// sections, e.g. "📚 Self Study" containing every Study Block habit.
-// Groups are ordered by first appearance, so the sidebar's overall order
-// is still driven entirely by manual drag reordering, never alphabetised
-// or otherwise auto-sorted. Empty groups created via "+ New Group" are
-// appended at the end until they pick up a habit. Habits with no group
-// (cat is empty/whitespace) are NOT folded into a fake "Other" group —
-// they're collected separately and rendered as a flat list underneath
-// every named group, per the "ungrouped habits at the bottom" design.
+// Flat, freely-reorderable habit list. Groups are just a tag shown on each
+// row (see buildHabitRow) — there's no container to keep same-group habits
+// together, so dragging a habit from one group in between two habits of a
+// different group is just... dragging it there. Group assignment/rename/
+// delete all live in the habit's edit modal now (see buildGroupField).
 function buildHabitListEl(habits){
-  const groupKey=hb=>(hb.cat&&hb.cat.trim())||null;
-  const groupOrder=[],groupMap={};
-  const ungrouped=[];
-  habits.forEach(hb=>{
-    const k=groupKey(hb);
-    if(k===null){ungrouped.push(hb);return;}
-    if(!groupMap[k]){groupMap[k]=[];groupOrder.push(k);}
-    groupMap[k].push(hb);
-  });
-  state.customGroups.forEach(g=>{
-    if(!groupMap[g]){groupMap[g]=[];groupOrder.push(g);}
-  });
-
   const listEl=h('div',{className:'habit-list'});
-
-  // Blend the persisted drag order in with whatever groups actually exist
-  // right now: known groups keep their dragged position, brand-new groups
-  // (just created, or a habit's first-ever custom category) get appended
-  // at the end in discovery order until the user drags them somewhere.
-  const finalGroupOrder=[
-    ...state.groupOrder.filter(g=>groupOrder.includes(g)),
-    ...groupOrder.filter(g=>!state.groupOrder.includes(g))
-  ];
-
-  finalGroupOrder.forEach(gname=>{
-    const items=groupMap[gname];
-    const collapsed=state.collapsedSections['grp:'+gname]!==false; // collapsed by default
-    const menu=h('div',{className:'h-group-menu'},
-      h('button',{className:'h-group-menu-item',onClick:e=>{e.stopPropagation();menu.classList.remove('open');const nn=prompt('Rename group:',gname);if(nn)renameGroup(gname,nn);}},'✏️  Rename Group'),
-      h('button',{className:'h-group-menu-item danger',onClick:e=>{e.stopPropagation();menu.classList.remove('open');deleteGroup(gname);}},'🗑  Delete Group')
-    );
-    const menuBtn=h('button',{className:'ib h-group-menu-btn',title:'Group options',onClick:e=>{e.stopPropagation();toggleGroupMenu(menu);}},'⋮');
-    const header=h('div',{className:'h-group-header',draggable:'true'},
-      h('span',{className:'h-drag-handle',title:'Drag to reorder group'},'⠿'),
-      h('span',{className:'h-group-arrow',onClick:()=>toggleSection('grp:'+gname)},collapsed?'▶':'▼'),
-      h('span',{className:'h-group-emoji',onClick:()=>toggleSection('grp:'+gname)},items[0]?items[0].emoji:'🗂'),
-      h('span',{className:'h-group-name',onClick:()=>toggleSection('grp:'+gname)},gname),
-      h('span',{className:'h-group-count',onClick:()=>toggleSection('grp:'+gname)},String(items.length)),
-      h('div',{className:'h-group-acts'},menuBtn,menu)
-    );
-    // Wraps the header + its (possibly collapsed) items into one node so the
-    // whole group — not just the header — moves together when dragged.
-    const block=h('div',{className:'h-group-block'});
-    block.dataset.group=gname;
-    // Dragging the group header itself reorders entire groups, distinct
-    // from dragging a habit row (which carries 'text/habit-id' instead).
-    header.addEventListener('dragstart',e=>{
-      e.stopPropagation();
-      block.classList.add('h-group-dragging');
-      e.dataTransfer.effectAllowed='move';
-      e.dataTransfer.setData('text/group-name',gname);
-    });
-    header.addEventListener('dragend',e=>{
-      e.stopPropagation();
-      block.classList.remove('h-group-dragging');
-      const newOrder=[...listEl.querySelectorAll('.h-group-block')].map(b=>b.dataset.group);
-      setState({groupOrder:newOrder});
-    });
-    block.addEventListener('dragover',e=>{
-      if(!e.dataTransfer.types.includes('text/group-name'))return; // a habit row, not a group — let header's own handler deal with it
-      e.preventDefault();
-      e.dataTransfer.dropEffect='move';
-      const draggingBlock=listEl.querySelector('.h-group-dragging');
-      if(draggingBlock&&draggingBlock!==block){
-        const rect=block.getBoundingClientRect();
-        const mid=rect.top+rect.height/2;
-        if(e.clientY<mid)block.parentNode.insertBefore(draggingBlock,block);
-        else block.parentNode.insertBefore(draggingBlock,block.nextSibling);
-      }
-    });
-    // Dropping a dragged habit row onto a header moves it into this group
-    header.addEventListener('dragover',e=>{
-      if(!e.dataTransfer.types.includes('text/habit-id'))return; // ignore group-reorder drags here
-      e.preventDefault();
-      header.classList.add('h-group-header-over');
-    });
-    header.addEventListener('dragleave',()=>header.classList.remove('h-group-header-over'));
-    header.addEventListener('drop',e=>{
-      if(!e.dataTransfer.types.includes('text/habit-id'))return;
-      e.preventDefault();
-      header.classList.remove('h-group-header-over');
-      const draggedId=+e.dataTransfer.getData('text/habit-id');
-      if(!draggedId)return;
-      setState({habits:state.habits.map(hb=>hb.id===draggedId?{...hb,cat:gname}:hb),collapsedSections:{...state.collapsedSections,['grp:'+gname]:false}});
-    });
-    block.appendChild(header);
-    if(!collapsed){
-      const itemsWrap=h('div',{className:'h-group-items'});
-      if(!items.length){
-        itemsWrap.appendChild(h('div',{className:'h-group-empty'},'No habits yet — add one or drag a habit here'));
-      }
-      items.forEach(hb=>itemsWrap.appendChild(buildHabitRow(hb,itemsWrap)));
-      block.appendChild(itemsWrap);
-    }
-    listEl.appendChild(block);
-  });
-
-  // Ungrouped habits — flat list below every named group, with a light
-  // label instead of a full header (no rename/delete menu, since "no
-  // group" isn't itself a group). Still a drop target so habits can be
-  // dragged out of a group back to ungrouped.
-  if(ungrouped.length){
-    const ungroupedWrap=h('div',{className:'h-group-items',style:{borderLeft:'none',marginLeft:'0',paddingLeft:'0'}});
-    ungroupedWrap.addEventListener('dragover',e=>{e.preventDefault();});
-    ungroupedWrap.addEventListener('drop',e=>{
-      e.preventDefault();
-      const draggedId=+e.dataTransfer.getData('text/habit-id');
-      if(!draggedId)return;
-      setState({habits:state.habits.map(hb=>hb.id===draggedId?{...hb,cat:''}:hb)});
-    });
-    listEl.appendChild(h('div',{className:'h-ungrouped-label'},'Ungrouped'));
-    ungrouped.forEach(hb=>ungroupedWrap.appendChild(buildHabitRow(hb,ungroupedWrap)));
-    listEl.appendChild(ungroupedWrap);
-  }
-
-  listEl.appendChild(h('button',{className:'new-group-btn',onClick:createGroup},'➕  New Category'));
-
+  habits.forEach(hb=>listEl.appendChild(buildHabitRow(hb,listEl)));
   return listEl;
 }
 
@@ -1814,29 +1711,14 @@ function nextOccurrenceLabel(occ){
   return MONTHS_SHORT[occ.date.getMonth()]+' '+occ.date.getDate();
 }
 
-// Maps habit id -> position in the sidebar's drag-arranged order (groups
-// in their dragged order, habits within a group in their dragged order,
-// ungrouped habits last). Used to make the dashboard checklist match
-// whatever arrangement the user set up in the sidebar.
+// Maps habit id -> position in the sidebar's drag-arranged order. Since
+// the sidebar is now a single flat list (group is just a tag, not a
+// container), this is just the habit's index in state.habits — dragging
+// a row in the sidebar writes straight back into state.habits, so the
+// two are always in sync.
 function sidebarOrderIndex(){
-  const groupKey=hb=>(hb.cat&&hb.cat.trim())||null;
-  const groupOrder=[],groupMap={};
-  const ungrouped=[];
-  state.habits.forEach(hb=>{
-    const k=groupKey(hb);
-    if(k===null){ungrouped.push(hb);return;}
-    if(!groupMap[k]){groupMap[k]=[];groupOrder.push(k);}
-    groupMap[k].push(hb);
-  });
-  const finalGroupOrder=[
-    ...state.groupOrder.filter(g=>groupOrder.includes(g)),
-    ...groupOrder.filter(g=>!state.groupOrder.includes(g))
-  ];
-  const ordered=[];
-  finalGroupOrder.forEach(g=>ordered.push(...groupMap[g]));
-  ordered.push(...ungrouped);
   const idx=new Map();
-  ordered.forEach((hb,i)=>idx.set(hb.id,i));
+  state.habits.forEach((hb,i)=>idx.set(hb.id,i));
   return idx;
 }
 
@@ -1918,12 +1800,18 @@ function buildChecklist(){
     else inactiveHabits.push(hb);
   });
 
-  // Dashboard now mirrors whatever order/grouping you set up in the
-  // sidebar (drag groups, drag habits within a group) instead of
-  // re-sorting habits by its own logic.
+  // Dashboard now mirrors whatever order you set up in the sidebar, except
+  // for today's list: a habit you've just checked off sinks to the bottom
+  // immediately, so what's still left to do stays at the top. Upcoming/
+  // inactive lists aren't checkable today, so they just keep sidebar order.
   const orderIdx=sidebarOrderIndex();
   const byOrder=(x,y)=>(orderIdx.get(x)??0)-(orderIdx.get(y)??0);
-  const sortedToday=[...todayHabits].sort((a,b)=>byOrder(a.id,b.id));
+  const isDoneToday=hb=>!!checks[ck(hb.id,targetDay)];
+  const sortedToday=[...todayHabits].sort((a,b)=>{
+    const da=isDoneToday(a)?1:0,db=isDoneToday(b)?1:0;
+    if(da!==db)return da-db;
+    return byOrder(a.id,b.id);
+  });
   const sortedUpcoming=[...upcomingHabits].sort((a,b)=>byOrder(a.hb.id,b.hb.id));
   inactiveHabits.sort((a,b)=>byOrder(a.id,b.id));
 
@@ -2921,13 +2809,12 @@ function buildModal(){
   nameInput.addEventListener('input',e=>state.formName=e.target.value);
   nameInput.addEventListener('keydown',e=>{if(e.key==='Enter')saveHabit();if(e.key==='Escape')closeModal()});
 
-  // Group field — a dropdown of "No Group" / every existing group name /
-  // "+ Create New Group…". Picking "create new" swaps the select for an
-  // inline text input (Add/Cancel) without closing the modal; confirming
-  // adds the group to customGroups and immediately assigns this habit to
-  // it. This is the single source of group assignment for both Add and
-  // Edit — moving a habit to another group, or back to "No Group", is
-  // just picking a different option here.
+  // Group field — a dropdown of "No Group" / every existing group (tag)
+  // name / "+ Create New Group…", plus ✏️/🗑 to rename or delete whichever
+  // tag is currently selected. This is now the single place group/tag
+  // management happens at all — there's no sidebar header to hang a menu
+  // off since the sidebar is a flat list and a tag is just a label on a
+  // habit, not a container.
   const groupWrap=document.createElement('div');
   groupWrap.className='group-field-wrap';
 
@@ -2942,12 +2829,29 @@ function buildModal(){
       sel.appendChild(Object.assign(document.createElement('option'),{value:g,textContent:g}));
     });
     sel.appendChild(Object.assign(document.createElement('option'),{value:'__new__',textContent:'➕ Create New Group…'}));
-    sel.value=allGroupNames().includes(state.formCat)?state.formCat:'';
+    const currentVal=allGroupNames().includes(state.formCat)?state.formCat:'';
+    sel.value=currentVal;
     sel.addEventListener('change',e=>{
       if(e.target.value==='__new__'){buildGroupCreateRow();}
-      else{state.formCat=e.target.value;}
+      else{state.formCat=e.target.value;buildGroupField();}
     });
-    groupWrap.appendChild(sel);
+    const row=h('div',{className:'group-select-row'},sel);
+    if(currentVal){
+      const renameBtn=h('button',{type:'button',className:'ib',title:'Rename this tag'},'✏️');
+      renameBtn.addEventListener('click',()=>{
+        const nn=prompt('Rename tag:',currentVal);
+        if(nn&&renameGroup(currentVal,nn.trim()))state.formCat=nn.trim();
+        buildGroupField();
+      });
+      const delBtn=h('button',{type:'button',className:'ib',title:'Delete this tag'},'🗑');
+      delBtn.addEventListener('click',()=>{
+        if(deleteGroup(currentVal))state.formCat='';
+        buildGroupField();
+      });
+      row.appendChild(renameBtn);
+      row.appendChild(delBtn);
+    }
+    groupWrap.appendChild(row);
   }
   function buildGroupCreateRow(){
     groupWrap.innerHTML='';
