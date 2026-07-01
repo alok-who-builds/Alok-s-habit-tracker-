@@ -64,8 +64,8 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-h
 .year-sel{width:100%;padding:5px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .15s,box-shadow .15s}
 .year-sel:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
 .habit-list{display:flex;flex-direction:column;gap:3px;padding:6px 0}
-.h-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:5px;cursor:default;position:relative;transition:background .15s}
-.h-drag-handle{font-size:11px;color:var(--text3);cursor:grab;flex-shrink:0;line-height:1;touch-action:none;padding:4px;margin:-4px}
+.h-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:5px;cursor:default;position:relative;transition:background .15s;user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none}
+.h-drag-handle{font-size:11px;color:var(--text3);cursor:grab;flex-shrink:0;line-height:1;touch-action:none;padding:4px;margin:-4px;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-select:none;-ms-user-select:none}
 .h-drag-handle:active{cursor:grabbing}
 .h-item.h-dragging{opacity:.4}
 .h-tag{font-size:9px;font-weight:600;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:1px 6px;border-radius:8px;flex-shrink:0;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1470,7 +1470,9 @@ function render(){
 // special happening.
 function buildHabitRow(hb,listEl){
   const tag=(hb.cat&&hb.cat.trim())?h('span',{className:'h-tag',title:hb.cat},hb.cat):null;
-  const handle=h('span',{className:'h-drag-handle',title:'Drag to reorder'},'⠿');
+  const handle=h('span',{className:'h-drag-handle',title:'Drag to reorder',draggable:false},'⠿');
+  handle.addEventListener('dragstart',e=>e.preventDefault());
+  handle.setAttribute('draggable','false');
   const row=h('div',{className:'h-item'},
     handle,
     h('span',{className:'h-emoji'},hb.emoji),
@@ -1520,7 +1522,9 @@ function buildHabitRow(hb,listEl){
     if(!dragging)return;
     dragging=false;
     row.classList.remove('h-dragging');
-    try{handle.releasePointerCapture(e.pointerId);}catch(_){}
+    document.removeEventListener('pointermove',onPointerMove);
+    document.removeEventListener('pointerup',endDrag);
+    document.removeEventListener('pointercancel',endDrag);
     commitOrder();
   }
   handle.addEventListener('pointerdown',e=>{
@@ -1528,11 +1532,14 @@ function buildHabitRow(hb,listEl){
     e.preventDefault();
     dragging=true;
     row.classList.add('h-dragging');
-    handle.setPointerCapture(e.pointerId);
+    // Listen on document (not the handle) — reordering moves the row
+    // (and its handle) in the DOM, and browsers silently drop
+    // setPointerCapture on an element that gets detached/reinserted,
+    // which would otherwise kill the drag after the very first move.
+    document.addEventListener('pointermove',onPointerMove);
+    document.addEventListener('pointerup',endDrag);
+    document.addEventListener('pointercancel',endDrag);
   });
-  handle.addEventListener('pointermove',onPointerMove);
-  handle.addEventListener('pointerup',endDrag);
-  handle.addEventListener('pointercancel',endDrag);
   return row;
 }
 
